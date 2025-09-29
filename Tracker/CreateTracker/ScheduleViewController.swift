@@ -47,9 +47,21 @@ final class ScheduleViewController: UIViewController {
     private func setupDoneButton() {
         let button = UIButton(type: .system)
         button.setTitle("Готово", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .black
+        button.layer.cornerRadius = 16
+        button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 24, bottom: 12, right: 24)
         button.addTarget(self, action: #selector(didTapDone), for: .touchUpInside)
-        
-        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: button)
+
+        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 100))
+        footerView.addSubview(button)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.centerXAnchor.constraint(equalTo: footerView.centerXAnchor),
+            button.topAnchor.constraint(equalTo: footerView.topAnchor, constant: 16),
+            button.heightAnchor.constraint(equalToConstant: 48)
+        ])
+        tableView.tableFooterView = footerView
     }
     
     // MARK: - Actions
@@ -61,6 +73,15 @@ final class ScheduleViewController: UIViewController {
         
         onDaysSelected?(selected)
         navigationController?.popViewController(animated: true)
+    }
+    
+    @objc private func switchChanged(_ sender: UISwitch) {
+        let index = sender.tag
+        if sender.isOn {
+            selectedWeekdays.insert(index)
+        } else {
+            selectedWeekdays.remove(index)
+        }
     }
 }
 
@@ -74,17 +95,15 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        cell.selectionStyle = .none
         cell.textLabel?.text = weekdays[indexPath.row]
-        cell.accessoryType = selectedWeekdays.contains(indexPath.row) ? .checkmark : .none
+        
+        let switchView = UISwitch()
+        switchView.isOn = selectedWeekdays.contains(indexPath.row)
+        switchView.tag = indexPath.row
+        switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
+        cell.accessoryView = switchView
+        
         return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if selectedWeekdays.contains(indexPath.row) {
-            selectedWeekdays.remove(indexPath.row)
-        } else {
-            selectedWeekdays.insert(indexPath.row)
-        }
-        tableView.reloadRows(at: [indexPath], with: .automatic)
     }
 }

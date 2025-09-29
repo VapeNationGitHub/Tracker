@@ -20,19 +20,22 @@ final class NewHabitViewController: UIViewController {
     
     // MARK: - Data
     
-    var onTrackerCreated: ((Tracker) -> Void)?  // Замыкание для передачи данных
+    var onTrackerCreated: ((Tracker) -> Void)?
     
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
     private var selectedDays: [WeekDay] = []
     
-    // MARK: - View Lifecycle
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         layoutUI()
         setupCallbacks()
+        setupKeyboardDismissRecognizer()
+        addKeyboardToolbarToTextField()
+        validateForm()
         titleTextField.becomeFirstResponder()
     }
     
@@ -68,7 +71,6 @@ final class NewHabitViewController: UIViewController {
             let emoji = selectedEmoji,
             let color = selectedColor
         else {
-            
             return
         }
         
@@ -102,6 +104,7 @@ final class NewHabitViewController: UIViewController {
         titleTextField.placeholder = "Введите название трекера"
         titleTextField.borderStyle = .roundedRect
         titleTextField.translatesAutoresizingMaskIntoConstraints = false
+        titleTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         
         categoryButton.translatesAutoresizingMaskIntoConstraints = false
         scheduleButton.translatesAutoresizingMaskIntoConstraints = false
@@ -132,11 +135,17 @@ final class NewHabitViewController: UIViewController {
         colorLabel.text = "Цвет"
         
         cancelButton.setTitle("Отменить", for: .normal)
-        cancelButton.setTitleColor(.red, for: .normal)
+        cancelButton.setTitleColor(.label, for: .normal)
+        cancelButton.backgroundColor = .systemGray6
+        cancelButton.layer.cornerRadius = 16
         cancelButton.addTarget(self, action: #selector(didTapCancel), for: .touchUpInside)
         
         createButton.setTitle("Создать", for: .normal)
-        createButton.setTitleColor(.systemBlue, for: .normal)
+        createButton.setTitleColor(.white, for: .normal)
+        createButton.backgroundColor = .systemBlue
+        createButton.layer.cornerRadius = 16
+        createButton.isEnabled = false
+        createButton.alpha = 0.5
         createButton.addTarget(self, action: #selector(didTapCreate), for: .touchUpInside)
         
         [titleTextField, categoryButton, scheduleButton,
@@ -147,7 +156,6 @@ final class NewHabitViewController: UIViewController {
         scrollView.addSubview(contentView)
         view.addSubview(scrollView)
     }
-    
     
     private func layoutUI() {
         NSLayoutConstraint.activate([
@@ -190,20 +198,65 @@ final class NewHabitViewController: UIViewController {
             
             cancelButton.topAnchor.constraint(equalTo: colorCollection.bottomAnchor, constant: 32),
             cancelButton.leadingAnchor.constraint(equalTo: titleTextField.leadingAnchor),
-            cancelButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
+            cancelButton.heightAnchor.constraint(equalToConstant: 60),
+            cancelButton.widthAnchor.constraint(equalTo: createButton.widthAnchor),
             
-            createButton.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor),
+            createButton.topAnchor.constraint(equalTo: colorCollection.bottomAnchor, constant: 32),
             createButton.trailingAnchor.constraint(equalTo: titleTextField.trailingAnchor),
+            createButton.heightAnchor.constraint(equalToConstant: 60),
+            createButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32)
         ])
     }
     
     private func setupCallbacks() {
         emojiCollection.onEmojiSelected = { [weak self] emoji in
             self?.selectedEmoji = emoji
+            self?.validateForm()
         }
         
         colorCollection.onColorSelected = { [weak self] color in
             self?.selectedColor = color
+            self?.validateForm()
         }
+    }
+    
+    // MARK: - Validation
+    
+    @objc private func textFieldDidChange() {
+        validateForm()
+    }
+    
+    private func validateForm() {
+        let isTitleFilled = !(titleTextField.text?.isEmpty ?? true)
+        let isEmojiSelected = selectedEmoji != nil
+        let isColorSelected = selectedColor != nil
+        
+        let isFormValid = isTitleFilled && isEmojiSelected && isColorSelected
+        
+        createButton.isEnabled = isFormValid
+        createButton.alpha = isFormValid ? 1.0 : 0.5
+    }
+    
+    // MARK: - Keyboard Handling
+    
+    private func setupKeyboardDismissRecognizer() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+    
+    private func addKeyboardToolbarToTextField() {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        
+        let flexible = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let done = UIBarButtonItem(title: "Готово", style: .done, target: self, action: #selector(dismissKeyboard))
+        
+        toolbar.setItems([flexible, done], animated: false)
+        titleTextField.inputAccessoryView = toolbar
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
 }

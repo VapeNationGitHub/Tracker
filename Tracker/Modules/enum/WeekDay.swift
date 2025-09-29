@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Days of Week
 
 enum WeekDay: Int, CaseIterable {
-    case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday
+    case monday = 0, tuesday, wednesday, thursday, friday, saturday, sunday
     
     var shortName: String {
         switch self {

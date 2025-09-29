@@ -65,6 +65,9 @@ final class TrackerCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupLayout()
+        NSLayoutConstraint.activate([
+            contentView.widthAnchor.constraint(equalToConstant: frame.width)
+        ])
         plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
     }
     
@@ -109,8 +112,8 @@ final class TrackerCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate([
             backgroundCardView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            backgroundCardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            backgroundCardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            backgroundCardView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            backgroundCardView.widthAnchor.constraint(equalTo: contentView.widthAnchor),
             backgroundCardView.heightAnchor.constraint(equalToConstant: 90),
             
             emojiLabel.topAnchor.constraint(equalTo: backgroundCardView.topAnchor, constant: 12),
