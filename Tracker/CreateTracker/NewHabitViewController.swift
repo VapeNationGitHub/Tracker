@@ -15,8 +15,11 @@ final class NewHabitViewController: UIViewController {
     private let emojiCollection = EmojiCollectionView()
     private let colorLabel = UILabel()
     private let colorCollection = ColorCollectionView()
+    
+    
     private let cancelButton = UIButton(type: .system)
     private let createButton = UIButton(type: .system)
+    private let bottomStack = UIStackView()
     
     // MARK: - Data
     
@@ -56,6 +59,7 @@ final class NewHabitViewController: UIViewController {
         let scheduleVC = ScheduleViewController()
         scheduleVC.onDaysSelected = { [weak self] days in
             self?.selectedDays = days
+            self?.validateForm()
         }
         navigationController?.pushViewController(scheduleVC, animated: true)
     }
@@ -66,13 +70,10 @@ final class NewHabitViewController: UIViewController {
     
     @objc private func didTapCreate() {
         guard
-            let title = titleTextField.text,
-            !title.isEmpty,
+            let title = titleTextField.text, !title.isEmpty,
             let emoji = selectedEmoji,
             let color = selectedColor
-        else {
-            return
-        }
+        else { return }
         
         let tracker = Tracker(
             id: UUID(),
@@ -83,7 +84,7 @@ final class NewHabitViewController: UIViewController {
         )
         
         onTrackerCreated?(tracker)
-        navigationController?.dismiss(animated: true)
+        dismiss(animated: true)
     }
     
     // MARK: - Setup
@@ -97,6 +98,7 @@ final class NewHabitViewController: UIViewController {
             target: self,
             action: #selector(didTapClose)
         )
+        
         
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -112,8 +114,6 @@ final class NewHabitViewController: UIViewController {
         emojiCollection.translatesAutoresizingMaskIntoConstraints = false
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
         colorCollection.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        createButton.translatesAutoresizingMaskIntoConstraints = false
         
         categoryButton.setTitle("Категория", for: .normal)
         categoryButton.setTitleColor(.label, for: .normal)
@@ -134,39 +134,55 @@ final class NewHabitViewController: UIViewController {
         emojiLabel.text = "Emoji"
         colorLabel.text = "Цвет"
         
+        
         cancelButton.setTitle("Отменить", for: .normal)
-        cancelButton.setTitleColor(.label, for: .normal)
-        cancelButton.backgroundColor = .systemGray6
-        cancelButton.layer.cornerRadius = 16
+        cancelButton.setTitleColor(.systemRed, for: .normal)
+        cancelButton.backgroundColor = .clear
+        cancelButton.layer.cornerRadius = 14
+        cancelButton.layer.borderWidth = 1
+        cancelButton.layer.borderColor = UIColor.systemRed.cgColor
         cancelButton.addTarget(self, action: #selector(didTapCancel), for: .touchUpInside)
         
         createButton.setTitle("Создать", for: .normal)
         createButton.setTitleColor(.white, for: .normal)
-        createButton.backgroundColor = .systemBlue
-        createButton.layer.cornerRadius = 16
-        createButton.isEnabled = false
-        createButton.alpha = 0.5
+        createButton.layer.cornerRadius = 14
         createButton.addTarget(self, action: #selector(didTapCreate), for: .touchUpInside)
         
+        
+        bottomStack.axis = .horizontal
+        bottomStack.spacing = 16
+        bottomStack.distribution = .fillEqually
+        bottomStack.translatesAutoresizingMaskIntoConstraints = false
+        
+        
         [titleTextField, categoryButton, scheduleButton,
-         emojiLabel, emojiCollection, colorLabel, colorCollection,
-         cancelButton, createButton]
+         emojiLabel, emojiCollection, colorLabel, colorCollection]
             .forEach { contentView.addSubview($0) }
         
         scrollView.addSubview(contentView)
         view.addSubview(scrollView)
+        
+        
+        bottomStack.addArrangedSubview(cancelButton)
+        bottomStack.addArrangedSubview(createButton)
+        view.addSubview(bottomStack)
     }
     
     private func layoutUI() {
         NSLayoutConstraint.activate([
+            
+            
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            
+            scrollView.bottomAnchor.constraint(equalTo: bottomStack.topAnchor, constant: -16),
             
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            
             
             titleTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             titleTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -196,15 +212,13 @@ final class NewHabitViewController: UIViewController {
             colorCollection.trailingAnchor.constraint(equalTo: titleTextField.trailingAnchor),
             colorCollection.heightAnchor.constraint(equalToConstant: 100),
             
-            cancelButton.topAnchor.constraint(equalTo: colorCollection.bottomAnchor, constant: 32),
-            cancelButton.leadingAnchor.constraint(equalTo: titleTextField.leadingAnchor),
-            cancelButton.heightAnchor.constraint(equalToConstant: 60),
-            cancelButton.widthAnchor.constraint(equalTo: createButton.widthAnchor),
             
-            createButton.topAnchor.constraint(equalTo: colorCollection.bottomAnchor, constant: 32),
-            createButton.trailingAnchor.constraint(equalTo: titleTextField.trailingAnchor),
-            createButton.heightAnchor.constraint(equalToConstant: 60),
-            createButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32)
+            colorCollection.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -32),
+            
+            bottomStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            bottomStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            bottomStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
+            bottomStack.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
     
@@ -227,14 +241,23 @@ final class NewHabitViewController: UIViewController {
     }
     
     private func validateForm() {
-        let isTitleFilled = !(titleTextField.text?.isEmpty ?? true)
+        let isTitleFilled = !(titleTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         let isEmojiSelected = selectedEmoji != nil
         let isColorSelected = selectedColor != nil
         
         let isFormValid = isTitleFilled && isEmojiSelected && isColorSelected
         
         createButton.isEnabled = isFormValid
-        createButton.alpha = isFormValid ? 1.0 : 0.5
+        if isFormValid {
+            createButton.backgroundColor = .systemBlue
+            createButton.setTitleColor(.white, for: .normal)
+        } else {
+            createButton.backgroundColor = .systemGray4
+            createButton.setTitleColor(.white, for: .normal)
+        }
+        
+        cancelButton.layer.borderColor = UIColor.systemRed.cgColor
+        cancelButton.setTitleColor(.systemRed, for: .normal)
     }
     
     // MARK: - Keyboard Handling

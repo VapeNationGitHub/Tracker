@@ -9,6 +9,7 @@ final class ScheduleViewController: UIViewController {
     var onDaysSelected: (([WeekDay]) -> Void)?
     private var selectedWeekdays: Set<Int> = []
     private let tableView = UITableView()
+    private let doneButton = UIButton(type: .system)
     
     private let weekdays: [String] = [
         "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"
@@ -25,43 +26,42 @@ final class ScheduleViewController: UIViewController {
         setupDoneButton()
     }
     
-    // MARK: - Setup
+    // MARK: - Setup UI
     
     private func setupTableView() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+        tableView.keyboardDismissMode = .onDrag
         tableView.tableFooterView = UIView()
         
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100) // место под кнопку
         ])
     }
     
     private func setupDoneButton() {
-        let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .black
-        button.layer.cornerRadius = 16
-        button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 24, bottom: 12, right: 24)
-        button.addTarget(self, action: #selector(didTapDone), for: .touchUpInside)
-
-        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 100))
-        footerView.addSubview(button)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitleColor(.white, for: .normal)
+        doneButton.backgroundColor = .black
+        doneButton.layer.cornerRadius = 16
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        doneButton.addTarget(self, action: #selector(didTapDone), for: .touchUpInside)
+        
+        view.addSubview(doneButton)
+        
         NSLayoutConstraint.activate([
-            button.centerXAnchor.constraint(equalTo: footerView.centerXAnchor),
-            button.topAnchor.constraint(equalTo: footerView.topAnchor, constant: 16),
-            button.heightAnchor.constraint(equalToConstant: 48)
+            doneButton.heightAnchor.constraint(equalToConstant: 60),
+            doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
         ])
-        tableView.tableFooterView = footerView
     }
     
     // MARK: - Actions
@@ -85,9 +85,9 @@ final class ScheduleViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource, UITableViewDelegate
+// MARK: - UITableViewDataSource
 
-extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
+extension ScheduleViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         weekdays.count
@@ -105,5 +105,17 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         cell.accessoryView = switchView
         
         return cell
+    }
+}
+
+// MARK: - UITableViewDelegate
+
+extension ScheduleViewController: UITableViewDelegate {
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        // Высота строки = высота tableView / количество дней
+        let totalHeight = tableView.bounds.height
+        let numberOfRows = CGFloat(weekdays.count)
+        return totalHeight / numberOfRows
     }
 }
