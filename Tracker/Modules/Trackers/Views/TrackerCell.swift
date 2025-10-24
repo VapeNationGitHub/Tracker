@@ -60,6 +60,16 @@ final class TrackerCell: UICollectionViewCell {
     
     private var isCompleted: Bool = false
     
+    // MARK: - Public control (enable/disable plus for future dates)
+    func setCompletionEnabled(_ enabled: Bool) {
+        plusButton.isEnabled = enabled
+        plusButton.alpha = enabled ? 1.0 : 0.4
+    }
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        setCompletionEnabled(true)
+    }
+    
     // MARK: - Init
     
     override init(frame: CGRect) {

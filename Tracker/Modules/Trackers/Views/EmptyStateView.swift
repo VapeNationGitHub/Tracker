@@ -20,6 +20,12 @@ final class EmptyStateView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Public API
+    func configure(image: UIImage?, title: String) {
+        imageView.image = image
+        titleLabel.text = title
+    }
+    
     // MARK: - Private Methods
     
     /// Настройка внешнего вида и расположения элементов
