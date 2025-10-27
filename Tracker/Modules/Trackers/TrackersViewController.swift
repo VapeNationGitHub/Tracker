@@ -180,19 +180,16 @@ final class TrackersViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func didTapAdd() {
-        let createVC = CreateTrackerViewController()
-        createVC.onTrackerCreated = { [weak self] tracker in
+        let habitVC = NewHabitViewController()
+        habitVC.onTrackerCreated = { [weak self] tracker in
             guard let self = self else { return }
-            
             let newCategory = TrackerCategory(title: "Привычки", trackers: [tracker])
             self.categories.append(newCategory)
-            
             self.collectionView.reloadData()
             self.updateVisibleState()
         }
-        
-        let navController = UINavigationController(rootViewController: createVC)
-        present(navController, animated: true)
+        let nav = UINavigationController(rootViewController: habitVC)
+        present(nav, animated: true)
     }
     
     @objc private func dateChanged(_ sender: UIDatePicker) {
