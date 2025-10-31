@@ -223,12 +223,12 @@ extension TrackersViewController: UICollectionViewDataSource {
         
         let completedDays = completedTrackers.filter { $0.trackerID == tracker.id }.count
         
-        // блокировка будущей даты (см. пункт 2)
+        // блокировка будущей даты
         let isFuture = Calendar.current.startOfDay(for: selectedDate) >
         Calendar.current.startOfDay(for: Date())
         
         cell.configure(with: tracker, isCompleted: isCompletedToday, completedDays: completedDays)
-        cell.setCompletionEnabled(!isFuture)       // см. дополнение к ячейке ниже
+        cell.setCompletionEnabled(!isFuture)
         cell.delegate = self
         return cell
     }

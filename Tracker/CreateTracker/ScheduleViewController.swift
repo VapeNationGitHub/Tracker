@@ -1,18 +1,27 @@
-import UIKit
-
 // MARK: - ScheduleViewController
+
+import UIKit
 
 final class ScheduleViewController: UIViewController {
     
-    // MARK: - Properties
+    // MARK: - Public
     
+    /// Callback для передачи выбранных дней недели назад
     var onDaysSelected: (([WeekDay]) -> Void)?
-    private var selectedWeekdays: Set<Int> = []
-    private let tableView = UITableView()
+    
+    // MARK: - UI
+    
+    private let cardView = UIView()
+    private let stackView = UIStackView()
     private let doneButton = UIButton(type: .system)
     
-    private let weekdays: [String] = [
-        "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"
+    // MARK: - Data
+    
+    private var selectedWeekdays: Set<Int> = []
+    
+    private let weekdays = [
+        "Понедельник", "Вторник", "Среда", "Четверг",
+        "Пятница", "Суббота", "Воскресенье"
     ]
     
     // MARK: - Lifecycle
@@ -21,101 +30,97 @@ final class ScheduleViewController: UIViewController {
         super.viewDidLoad()
         title = "Расписание"
         view.backgroundColor = .systemBackground
-        
-        setupTableView()
-        setupDoneButton()
+        setupUI()
+        layoutUI()
     }
     
-    // MARK: - Setup UI
+    // MARK: - Setup
     
-    private func setupTableView() {
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
-        tableView.keyboardDismissMode = .onDrag
-        tableView.tableFooterView = UIView()
+    private func setupUI() {
+        // Подложка с закруглениями
+        cardView.backgroundColor = .secondarySystemBackground
+        cardView.layer.cornerRadius = 16
+        cardView.layer.masksToBounds = true
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(cardView)
         
-        view.addSubview(tableView)
+        // Вертикальный стек для ScheduleCell
+        stackView.axis = .vertical
+        stackView.spacing = 0
+        stackView.distribution = .fillEqually
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        cardView.addSubview(stackView)
         
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100) // место под кнопку
-        ])
-    }
-    
-    private func setupDoneButton() {
+        // Заполняем стек ячейками для каждого дня недели
+        for i in 0..<weekdays.count {
+            let cell = ScheduleCell()
+            let title = weekdays[i]
+            let isLast = i == weekdays.count - 1
+            let isOn = selectedWeekdays.contains(i)
+            
+            cell.configure(
+                title: title,
+                isOn: isOn,
+                showSeparator: !isLast,
+                toggleTag: i,
+                toggleTarget: self,
+                toggleAction: #selector(switchChanged(_:))
+            )
+            stackView.addArrangedSubview(cell)
+        }
+        
+        // Кнопка "Готово"
         doneButton.setTitle("Готово", for: .normal)
         doneButton.setTitleColor(.white, for: .normal)
         doneButton.backgroundColor = .black
         doneButton.layer.cornerRadius = 16
+        doneButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         doneButton.addTarget(self, action: #selector(didTapDone), for: .touchUpInside)
-        
         view.addSubview(doneButton)
-        
+    }
+    
+    // MARK: - Layout
+    
+    private func layoutUI() {
         NSLayoutConstraint.activate([
-            doneButton.heightAnchor.constraint(equalToConstant: 60),
+            // Подложка
+            cardView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            cardView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            cardView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            // Стек внутри подложки
+            stackView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 16),
+            stackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
+            stackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -16),
+            stackView.heightAnchor.constraint(equalToConstant: CGFloat(weekdays.count) * 75),
+            
+            // Кнопка
+            doneButton.topAnchor.constraint(equalTo: cardView.bottomAnchor, constant: 32),
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            doneButton.heightAnchor.constraint(equalToConstant: 60),
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
         ])
     }
     
     // MARK: - Actions
     
+    /// Обработка нажатия на кнопку "Готово"
     @objc private func didTapDone() {
-        let selected: [WeekDay] = selectedWeekdays
-            .sorted()
-            .compactMap { WeekDay(rawValue: $0) }
-        
+        let selected: [WeekDay] = selectedWeekdays.sorted().compactMap { WeekDay(rawValue: $0) }
         onDaysSelected?(selected)
         navigationController?.popViewController(animated: true)
     }
     
+    /// Обработка изменения значения UISwitch в ячейке
     @objc private func switchChanged(_ sender: UISwitch) {
-        let index = sender.tag
+        let i = sender.tag
         if sender.isOn {
-            selectedWeekdays.insert(index)
+            selectedWeekdays.insert(i)
         } else {
-            selectedWeekdays.remove(index)
+            selectedWeekdays.remove(i)
         }
-    }
-}
-
-// MARK: - UITableViewDataSource
-
-extension ScheduleViewController: UITableViewDataSource {
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        weekdays.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        cell.selectionStyle = .none
-        cell.textLabel?.text = weekdays[indexPath.row]
-        
-        let switchView = UISwitch()
-        switchView.isOn = selectedWeekdays.contains(indexPath.row)
-        switchView.tag = indexPath.row
-        switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
-        cell.accessoryView = switchView
-        
-        return cell
-    }
-}
-
-// MARK: - UITableViewDelegate
-
-extension ScheduleViewController: UITableViewDelegate {
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        // Высота строки = высота tableView / количество дней
-        let totalHeight = tableView.bounds.height
-        let numberOfRows = CGFloat(weekdays.count)
-        return totalHeight / numberOfRows
     }
 }

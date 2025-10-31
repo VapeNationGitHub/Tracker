@@ -1,67 +1,6 @@
-import UIKit
-
-private final class ListRowView: UIControl {
-    private let titleLabel = UILabel()
-    private let chevronView = UIImageView(image: UIImage(systemName: "chevron.right"))
-    private let separator = UIView()
-    
-    var text: String {
-        get { titleLabel.text ?? "" }
-        set { titleLabel.text = newValue }
-    }
-    
-    var showsSeparator: Bool = false {
-        didSet { separator.isHidden = !showsSeparator }
-    }
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-    convenience init(title: String) {
-        self.init(frame: .zero); self.text = title
-    }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    
-    private func setup() {
-        translatesAutoresizingMaskIntoConstraints = false
-        backgroundColor = .clear
-        
-        titleLabel.font = .systemFont(ofSize: 17)
-        titleLabel.textColor = .label
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        chevronView.tintColor = .tertiaryLabel
-        chevronView.translatesAutoresizingMaskIntoConstraints = false
-        chevronView.setContentHuggingPriority(.required, for: .horizontal)
-        
-        separator.backgroundColor = UIColor.separator.withAlphaComponent(0.5)
-        separator.translatesAutoresizingMaskIntoConstraints = false
-        separator.isHidden = true
-        
-        addSubview(titleLabel)
-        addSubview(chevronView)
-        addSubview(separator)
-        
-        NSLayoutConstraint.activate([
-            heightAnchor.constraint(greaterThanOrEqualToConstant: 60),
-            
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            titleLabel.topAnchor.constraint(equalTo: topAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
-            
-            chevronView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            chevronView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            
-            separator.heightAnchor.constraint(equalToConstant: 0.5),
-            separator.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            separator.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            separator.bottomAnchor.constraint(equalTo: bottomAnchor)
-        ])
-    }
-}
-
 // MARK: - NewHabitViewController
+
+import UIKit
 
 final class NewHabitViewController: UIViewController {
     
@@ -71,6 +10,7 @@ final class NewHabitViewController: UIViewController {
     private let contentView = UIView()
     
     private let titleTextField = UITextField()
+    private let titleContainer = UIView()
     
     private let listGroupView = UIView()
     private let categoryRow = ListRowView(title: "Категория")
@@ -103,7 +43,177 @@ final class NewHabitViewController: UIViewController {
         setupKeyboardDismissRecognizer()
         addKeyboardToolbarToTextField()
         validateForm()
+        updateScheduleSummary()
         titleTextField.becomeFirstResponder()
+    }
+    
+    // MARK: - Setup UI
+    
+    private func setupUI() {
+        title = "Новая привычка"
+        view.backgroundColor = .systemBackground
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .close,
+            target: self,
+            action: #selector(didTapClose)
+        )
+        
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Поле "Название"
+        titleContainer.translatesAutoresizingMaskIntoConstraints = false
+        titleContainer.backgroundColor = .secondarySystemBackground
+        titleContainer.layer.cornerRadius = 16
+        titleContainer.layer.masksToBounds = true
+        
+        titleTextField.translatesAutoresizingMaskIntoConstraints = false
+        titleTextField.backgroundColor = .clear
+        titleTextField.borderStyle = .none
+        titleTextField.clearButtonMode = .whileEditing
+        titleTextField.textAlignment = .left
+        titleTextField.returnKeyType = .done
+        titleTextField.attributedPlaceholder = NSAttributedString(
+            string: "Введите название трекера",
+            attributes: [.foregroundColor: UIColor.placeholderText]
+        )
+        titleTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        
+        // Группа строк
+        listGroupView.translatesAutoresizingMaskIntoConstraints = false
+        listGroupView.backgroundColor = .secondarySystemBackground
+        listGroupView.layer.cornerRadius = 16
+        
+        categoryRow.showsSeparator = true
+        categoryRow.addTarget(self, action: #selector(didTapCategory), for: .touchUpInside)
+        scheduleRow.addTarget(self, action: #selector(didTapSchedule), for: .touchUpInside)
+        
+        listGroupView.addSubview(categoryRow)
+        listGroupView.addSubview(scheduleRow)
+        
+        // Emoji и Цвет
+        emojiLabel.text = "Emoji"
+        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
+        emojiCollection.translatesAutoresizingMaskIntoConstraints = false
+        
+        colorLabel.text = "Цвет"
+        colorLabel.translatesAutoresizingMaskIntoConstraints = false
+        colorCollection.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Кнопки
+        cancelButton.setTitle("Отменить", for: .normal)
+        cancelButton.setTitleColor(.systemRed, for: .normal)
+        cancelButton.backgroundColor = .clear
+        cancelButton.layer.cornerRadius = 14
+        cancelButton.layer.borderWidth = 1
+        cancelButton.layer.borderColor = UIColor.systemRed.cgColor
+        cancelButton.addTarget(self, action: #selector(didTapCancel), for: .touchUpInside)
+        
+        createButton.setTitle("Создать", for: .normal)
+        createButton.setTitleColor(.white, for: .normal)
+        createButton.layer.cornerRadius = 14
+        createButton.addTarget(self, action: #selector(didTapCreate), for: .touchUpInside)
+        
+        bottomStack.axis = .horizontal
+        bottomStack.spacing = 16
+        bottomStack.distribution = .fillEqually
+        bottomStack.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Иерархия
+        contentView.addSubview(titleContainer)
+        titleContainer.addSubview(titleTextField)
+        
+        [listGroupView, emojiLabel, emojiCollection, colorLabel, colorCollection]
+            .forEach { contentView.addSubview($0) }
+        
+        scrollView.addSubview(contentView)
+        view.addSubview(scrollView)
+        
+        bottomStack.addArrangedSubview(cancelButton)
+        bottomStack.addArrangedSubview(createButton)
+        view.addSubview(bottomStack)
+    }
+    
+    // MARK: - Layout
+    
+    private func layoutUI() {
+        NSLayoutConstraint.activate([
+            // Scroll
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomStack.topAnchor, constant: -16),
+            
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            
+            // Название
+            titleContainer.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            titleContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            titleContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            titleContainer.heightAnchor.constraint(equalToConstant: 75),
+            
+            titleTextField.topAnchor.constraint(equalTo: titleContainer.topAnchor, constant: 16),
+            titleTextField.bottomAnchor.constraint(equalTo: titleContainer.bottomAnchor, constant: -16),
+            titleTextField.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor, constant: 16),
+            titleTextField.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor, constant: -16),
+            
+            // Категория и Расписание
+            listGroupView.topAnchor.constraint(equalTo: titleContainer.bottomAnchor, constant: 24),
+            listGroupView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            listGroupView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            
+            categoryRow.topAnchor.constraint(equalTo: listGroupView.topAnchor),
+            categoryRow.leadingAnchor.constraint(equalTo: listGroupView.leadingAnchor),
+            categoryRow.trailingAnchor.constraint(equalTo: listGroupView.trailingAnchor),
+            categoryRow.heightAnchor.constraint(equalToConstant: 75),
+            
+            scheduleRow.topAnchor.constraint(equalTo: categoryRow.bottomAnchor),
+            scheduleRow.leadingAnchor.constraint(equalTo: listGroupView.leadingAnchor),
+            scheduleRow.trailingAnchor.constraint(equalTo: listGroupView.trailingAnchor),
+            scheduleRow.heightAnchor.constraint(equalToConstant: 75),
+            scheduleRow.bottomAnchor.constraint(equalTo: listGroupView.bottomAnchor),
+            
+            // Emoji и Цвет
+            emojiLabel.topAnchor.constraint(equalTo: listGroupView.bottomAnchor, constant: 24),
+            emojiLabel.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
+            
+            emojiCollection.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor, constant: 8),
+            emojiCollection.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
+            emojiCollection.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor),
+            emojiCollection.heightAnchor.constraint(equalToConstant: 100),
+            
+            colorLabel.topAnchor.constraint(equalTo: emojiCollection.bottomAnchor, constant: 24),
+            colorLabel.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
+            
+            colorCollection.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 8),
+            colorCollection.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
+            colorCollection.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor),
+            colorCollection.heightAnchor.constraint(equalToConstant: 100),
+            
+            colorCollection.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -32),
+            
+            // Кнопки
+            bottomStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            bottomStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            bottomStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
+            bottomStack.heightAnchor.constraint(equalToConstant: 56)
+        ])
+    }
+    
+    // MARK: - Callbacks
+    
+    private func setupCallbacks() {
+        emojiCollection.onEmojiSelected = { [weak self] emoji in
+            self?.selectedEmoji = emoji
+            self?.validateForm()
+        }
+        colorCollection.onColorSelected = { [weak self] color in
+            self?.selectedColor = color
+            self?.validateForm()
+        }
     }
     
     // MARK: - Actions
@@ -120,8 +230,10 @@ final class NewHabitViewController: UIViewController {
     @objc private func didTapSchedule() {
         let scheduleVC = ScheduleViewController()
         scheduleVC.onDaysSelected = { [weak self] days in
-            self?.selectedDays = days
-            self?.validateForm()
+            guard let self else { return }
+            self.selectedDays = days
+            self.updateScheduleSummary()
+            self.validateForm()
         }
         navigationController?.pushViewController(scheduleVC, animated: true)
     }
@@ -146,144 +258,6 @@ final class NewHabitViewController: UIViewController {
         dismiss(animated: true)
     }
     
-    // MARK: - Setup
-    
-    private func setupUI() {
-        title = "Новая привычка"
-        view.backgroundColor = .systemBackground
-        
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .close, target: self, action: #selector(didTapClose)
-        )
-        
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        
-        titleTextField.placeholder = "Введите название трекера"
-        titleTextField.borderStyle = .roundedRect
-        titleTextField.translatesAutoresizingMaskIntoConstraints = false
-        titleTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
-        
-        // Группа строк (категория/расписание)
-        listGroupView.translatesAutoresizingMaskIntoConstraints = false
-        listGroupView.backgroundColor = .secondarySystemBackground
-        listGroupView.layer.cornerRadius = 16
-        
-        categoryRow.showsSeparator = true
-        categoryRow.addTarget(self, action: #selector(didTapCategory), for: .touchUpInside)
-        scheduleRow.addTarget(self, action: #selector(didTapSchedule), for: .touchUpInside)
-        
-        listGroupView.addSubview(categoryRow)
-        listGroupView.addSubview(scheduleRow)
-        
-        emojiLabel.text = "Emoji"
-        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-        emojiCollection.translatesAutoresizingMaskIntoConstraints = false
-        
-        colorLabel.text = "Цвет"
-        colorLabel.translatesAutoresizingMaskIntoConstraints = false
-        colorCollection.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Нижние кнопки
-        cancelButton.setTitle("Отменить", for: .normal)
-        cancelButton.setTitleColor(.systemRed, for: .normal)
-        cancelButton.backgroundColor = .clear
-        cancelButton.layer.cornerRadius = 14
-        cancelButton.layer.borderWidth = 1
-        cancelButton.layer.borderColor = UIColor.systemRed.cgColor
-        cancelButton.addTarget(self, action: #selector(didTapCancel), for: .touchUpInside)
-        
-        createButton.setTitle("Создать", for: .normal)
-        createButton.setTitleColor(.white, for: .normal)
-        createButton.layer.cornerRadius = 14
-        createButton.addTarget(self, action: #selector(didTapCreate), for: .touchUpInside)
-        
-        bottomStack.axis = .horizontal
-        bottomStack.spacing = 16
-        bottomStack.distribution = .fillEqually
-        bottomStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Иерархия
-        [titleTextField, listGroupView, emojiLabel, emojiCollection, colorLabel, colorCollection]
-            .forEach { contentView.addSubview($0) }
-        
-        scrollView.addSubview(contentView)
-        view.addSubview(scrollView)
-        
-        bottomStack.addArrangedSubview(cancelButton)
-        bottomStack.addArrangedSubview(createButton)
-        view.addSubview(bottomStack)
-    }
-    
-    private func layoutUI() {
-        NSLayoutConstraint.activate([
-            // Scroll
-            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomStack.topAnchor, constant: -16),
-            
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            
-            // Поля
-            titleTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
-            titleTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            titleTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            
-            // Контейнер с двумя строками
-            listGroupView.topAnchor.constraint(equalTo: titleTextField.bottomAnchor, constant: 24),
-            listGroupView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            listGroupView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            
-            categoryRow.topAnchor.constraint(equalTo: listGroupView.topAnchor),
-            categoryRow.leadingAnchor.constraint(equalTo: listGroupView.leadingAnchor),
-            categoryRow.trailingAnchor.constraint(equalTo: listGroupView.trailingAnchor),
-            
-            scheduleRow.topAnchor.constraint(equalTo: categoryRow.bottomAnchor),
-            scheduleRow.leadingAnchor.constraint(equalTo: listGroupView.leadingAnchor),
-            scheduleRow.trailingAnchor.constraint(equalTo: listGroupView.trailingAnchor),
-            scheduleRow.bottomAnchor.constraint(equalTo: listGroupView.bottomAnchor),
-            
-            // Остальное
-            emojiLabel.topAnchor.constraint(equalTo: listGroupView.bottomAnchor, constant: 24),
-            emojiLabel.leadingAnchor.constraint(equalTo: titleTextField.leadingAnchor),
-            
-            emojiCollection.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor, constant: 8),
-            emojiCollection.leadingAnchor.constraint(equalTo: titleTextField.leadingAnchor),
-            emojiCollection.trailingAnchor.constraint(equalTo: titleTextField.trailingAnchor),
-            emojiCollection.heightAnchor.constraint(equalToConstant: 100),
-            
-            colorLabel.topAnchor.constraint(equalTo: emojiCollection.bottomAnchor, constant: 24),
-            colorLabel.leadingAnchor.constraint(equalTo: titleTextField.leadingAnchor),
-            
-            colorCollection.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 8),
-            colorCollection.leadingAnchor.constraint(equalTo: titleTextField.leadingAnchor),
-            colorCollection.trailingAnchor.constraint(equalTo: titleTextField.trailingAnchor),
-            colorCollection.heightAnchor.constraint(equalToConstant: 100),
-            
-            colorCollection.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -32),
-            
-            // Нижняя панель кнопок
-            bottomStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            bottomStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            bottomStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
-            bottomStack.heightAnchor.constraint(equalToConstant: 56),
-        ])
-    }
-    
-    private func setupCallbacks() {
-        emojiCollection.onEmojiSelected = { [weak self] emoji in
-            self?.selectedEmoji = emoji
-            self?.validateForm()
-        }
-        colorCollection.onColorSelected = { [weak self] color in
-            self?.selectedColor = color
-            self?.validateForm()
-        }
-    }
-    
     // MARK: - Validation
     
     @objc private func textFieldDidChange() { validateForm() }
@@ -296,7 +270,7 @@ final class NewHabitViewController: UIViewController {
         
         createButton.isEnabled = isFormValid
         if isFormValid {
-            createButton.backgroundColor = .systemBlue
+            createButton.backgroundColor = .black
             createButton.setTitleColor(.white, for: .normal)
         } else {
             createButton.backgroundColor = .systemGray4
@@ -304,6 +278,24 @@ final class NewHabitViewController: UIViewController {
         }
         cancelButton.layer.borderColor = UIColor.systemRed.cgColor
         cancelButton.setTitleColor(.systemRed, for: .normal)
+    }
+    
+    // MARK: - Helpers
+    
+    private func updateScheduleSummary() {
+        let summary = formattedDays(selectedDays)
+        scheduleRow.setSubtitle(summary.isEmpty ? nil : summary)
+    }
+    
+    private func formattedDays(_ days: [WeekDay]) -> String {
+        guard !days.isEmpty else { return "" }
+        let short: [WeekDay: String] = [
+            .monday: "Пн", .tuesday: "Вт", .wednesday: "Ср",
+            .thursday: "Чт", .friday: "Пт", .saturday: "Сб", .sunday: "Вс"
+        ]
+        return days.sorted { $0.rawValue < $1.rawValue }
+            .compactMap { short[$0] }
+            .joined(separator: ", ")
     }
     
     // MARK: - Keyboard
