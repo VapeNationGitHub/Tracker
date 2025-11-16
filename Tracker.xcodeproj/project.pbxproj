@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		02B4141F2EB6462D0017105E /* UIColorHexSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 02B4141E2EB6462D0017105E /* UIColorHexSwift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		027496082E56078E00AA2A39 /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				02B4141F2EB6462D0017105E /* UIColorHexSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = Tracker;
 			packageProductDependencies = (
+				02B4141E2EB6462D0017105E /* UIColorHexSwift */,
 			);
 			productName = Tracker;
 			productReference = 027496082E56078E00AA2A39 /* Tracker.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = 027495FF2E56078E00AA2A39;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				02B4141D2EB6462D0017105E /* XCRemoteSwiftPackageReference "UIColor-Hex-Swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 027496092E56078E00AA2A39 /* Products */;
 			projectDirPath = "";
@@ -336,6 +345,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		02B4141D2EB6462D0017105E /* XCRemoteSwiftPackageReference "UIColor-Hex-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/yeahdongcn/UIColor-Hex-Swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.9;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		02B4141E2EB6462D0017105E /* UIColorHexSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02B4141D2EB6462D0017105E /* XCRemoteSwiftPackageReference "UIColor-Hex-Swift" */;
+			productName = UIColorHexSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 027496002E56078E00AA2A39 /* Project object */;
 }

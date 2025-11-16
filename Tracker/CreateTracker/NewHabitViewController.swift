@@ -94,11 +94,17 @@ final class NewHabitViewController: UIViewController {
         
         // Emoji и Цвет
         emojiLabel.text = "Emoji"
+        emojiLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+        emojiLabel.textColor = UIColor(named: "BlackDay")
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
+
         emojiCollection.translatesAutoresizingMaskIntoConstraints = false
-        
+
         colorLabel.text = "Цвет"
+        colorLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+        colorLabel.textColor = UIColor(named: "BlackDay")
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
+
         colorCollection.translatesAutoresizingMaskIntoConstraints = false
         
         // Кнопки
@@ -133,6 +139,7 @@ final class NewHabitViewController: UIViewController {
         bottomStack.addArrangedSubview(cancelButton)
         bottomStack.addArrangedSubview(createButton)
         view.addSubview(bottomStack)
+        
     }
     
     // MARK: - Layout
@@ -184,6 +191,7 @@ final class NewHabitViewController: UIViewController {
             emojiCollection.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
             emojiCollection.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor),
             emojiCollection.heightAnchor.constraint(equalToConstant: 100),
+            emojiCollection.heightAnchor.constraint(equalToConstant: 160),
             
             colorLabel.topAnchor.constraint(equalTo: emojiCollection.bottomAnchor, constant: 24),
             colorLabel.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
@@ -192,8 +200,10 @@ final class NewHabitViewController: UIViewController {
             colorCollection.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
             colorCollection.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor),
             colorCollection.heightAnchor.constraint(equalToConstant: 100),
+            colorCollection.heightAnchor.constraint(equalToConstant: 180),
             
             colorCollection.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -32),
+            
             
             // Кнопки
             bottomStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),

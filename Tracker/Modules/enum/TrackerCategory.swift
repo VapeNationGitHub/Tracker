@@ -1,8 +1,11 @@
-import Foundation
-
-// MARK: - TrackerCategory
-
 struct TrackerCategory {
-    let title: String            // Название категории
-    let trackers: [Tracker]      // Массив трекеров
+    let title: String
+    let trackers: [Tracker]
+}
+
+extension TrackerCategory {
+    init(from core: TrackerCategoryCoreData, trackers: [Tracker]) {
+        self.title = core.title ?? ""
+        self.trackers = trackers
+    }
 }
