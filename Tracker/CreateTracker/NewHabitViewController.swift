@@ -97,14 +97,14 @@ final class NewHabitViewController: UIViewController {
         emojiLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         emojiLabel.textColor = UIColor(named: "BlackDay")
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-
+        
         emojiCollection.translatesAutoresizingMaskIntoConstraints = false
-
+        
         colorLabel.text = "Цвет"
         colorLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         colorLabel.textColor = UIColor(named: "BlackDay")
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
-
+        
         colorCollection.translatesAutoresizingMaskIntoConstraints = false
         
         // Кнопки
