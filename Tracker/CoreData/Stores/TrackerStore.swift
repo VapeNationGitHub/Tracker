@@ -53,7 +53,7 @@ final class TrackerStore: NSObject {
     }
     
     // MARK: - Create
-    
+
     func create(id: UUID,
                 name: String,
                 emoji: String,
@@ -66,9 +66,9 @@ final class TrackerStore: NSObject {
         tracker.name = name
         tracker.emoji = emoji
         tracker.colorHex = color.toHexString()
-        tracker.schedule = schedule.map { $0.rawValue } as NSArray
+        tracker.schedule = schedule.map { "\($0.rawValue)" } as NSArray
         tracker.category = category
-        
+
         try context.save()
     }
     
@@ -84,5 +84,9 @@ final class TrackerStore: NSObject {
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        NotificationCenter.default.post(
+            name: Notification.Name("TrackersDidChange"),
+            object: nil
+        )
     }
 }

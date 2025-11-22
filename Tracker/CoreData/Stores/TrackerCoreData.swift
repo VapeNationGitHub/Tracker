@@ -15,7 +15,7 @@ extension TrackerCoreData {
     @NSManaged public var emoji: String?
     @NSManaged public var colorHex: String?
     @NSManaged public var isPinned: Bool
-    @NSManaged public var schedule: NSObject?
+    @NSManaged public var schedule: Any?
     
     @NSManaged public var category: TrackerCategoryCoreData?
     @NSManaged public var records: NSSet?

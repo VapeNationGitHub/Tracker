@@ -1,4 +1,5 @@
 import UIKit
+import UIColorHexSwift
 
 // MARK: - TrackersViewController
 
@@ -81,8 +82,11 @@ final class TrackersViewController: UIViewController {
         // Фильтрация
         let filtered = allTrackers.filter { trackerCD in
             // 1) Расписание
-            let scheduleRaw = trackerCD.schedule as? [Int] ?? []
-            let schedule = scheduleRaw.compactMap { WeekDay(rawValue: $0) }
+            let scheduleStrings = trackerCD.schedule as? [String] ?? []
+            let schedule = scheduleStrings
+                .compactMap { Int($0) }
+                .compactMap { WeekDay(rawValue: $0) }
+            
             let isVisibleByDay = schedule.contains(neededDay)
             
             // 2) Поиск
@@ -111,6 +115,20 @@ final class TrackersViewController: UIViewController {
         setupNavigationBar()
         setupCollectionView()
         layoutEmptyView()
+        updateVisibleState()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(onStoreUpdate),
+            name: Notification.Name("TrackersDidChange"),
+            object: nil
+        )
+    }
+    
+    // MARK: - Core Data Updates
+    
+    @objc private func onStoreUpdate() {
+        collectionView.reloadData()
         updateVisibleState()
     }
     

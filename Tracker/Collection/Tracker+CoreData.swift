@@ -1,4 +1,5 @@
 import UIKit
+import UIColorHexSwift
 
 extension Tracker {
     init(from core: TrackerCoreData) {

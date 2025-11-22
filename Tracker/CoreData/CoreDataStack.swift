@@ -26,12 +26,22 @@ final class CoreDataStack {
     
     func saveContext() {
         let context = persistentContainer.viewContext
-        guard context.hasChanges else { return }
+        
+        print("🔍 saveContext() вызван")
+        
+        guard context.hasChanges else {
+            print("⚠️ context.hasChanges == false — нечего сохранять")
+            return
+        }
+        
+        print("💾 Сохраняем изменения в Core Data…")
         
         do {
             try context.save()
+            print("✅ УСПЕХ: Core Data сохранена")
         } catch {
             let nsError = error as NSError
+            print("❌ ОШИБКА сохранения: \(nsError), \(nsError.userInfo)")
             fatalError("Unresolved Core Data save error: \(nsError), \(nsError.userInfo)")
         }
     }
