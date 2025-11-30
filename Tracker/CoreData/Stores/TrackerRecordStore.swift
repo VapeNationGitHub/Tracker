@@ -118,6 +118,5 @@ final class TrackerRecordStore: NSObject {
 
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        // при необходимости можно слать нотификации
     }
 }

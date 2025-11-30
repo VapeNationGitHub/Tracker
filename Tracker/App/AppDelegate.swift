@@ -35,7 +35,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didDiscardSceneSessions sceneSessions: Set<UISceneSession>
     ) {
-        // Ничего не делаем
+
     }
     
     func applicationDidEnterBackground(_ application: UIApplication) {
