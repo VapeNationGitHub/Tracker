@@ -12,6 +12,8 @@ final class TrackerRecordStore: NSObject {
     // MARK: - Properties
     
     private let context: NSManagedObjectContext
+    private let calendar = Calendar.current
+    
     private lazy var frc: NSFetchedResultsController<TrackerRecordCoreData> = {
         let request = TrackerRecordCoreData.fetchRequest()
         request.sortDescriptors = [
@@ -41,6 +43,13 @@ final class TrackerRecordStore: NSObject {
         }
     }
     
+    // MARK: - Helpers (date)
+    
+    /// Приводим дату к началу дня, чтобы сравнивать только по дню, без времени
+    private func normalizedDate(_ date: Date) -> Date {
+        calendar.startOfDay(for: date)
+    }
+    
     // MARK: - Fetch
     
     func fetch() -> [TrackerRecordCoreData] {
@@ -50,12 +59,15 @@ final class TrackerRecordStore: NSObject {
     // MARK: - Helpers
     
     func isCompleted(tracker: TrackerCoreData, on date: Date) -> Bool {
+        let day = normalizedDate(date)
+        
         let request = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(
             format: "tracker == %@ AND date == %@",
             tracker,
-            date as NSDate
+            day as NSDate
         )
+        
         let count = (try? context.count(for: request)) ?? 0
         return count > 0
     }
@@ -70,41 +82,29 @@ final class TrackerRecordStore: NSObject {
     }
     
     // MARK: - Create / Delete
-    /*
-    func add(tracker: TrackerCoreData, date: Date) throws {
-        if isCompleted(tracker: tracker, on: date) { return }
-        
-        let record = TrackerRecordCoreData(context: context)
-        record.id = UUID()
-        record.date = date
-        record.tracker = tracker
-        
-        try context.save()
-    }
-     */
     
     func add(tracker: TrackerCoreData, date: Date) throws {
-        if isCompleted(tracker: tracker, on: date) { return }
+        let day = normalizedDate(date)
+        
+        if isCompleted(tracker: tracker, on: day) { return }
 
         let record = TrackerRecordCoreData(context: context)
         record.id = UUID()
-        record.date = date
-
-        // 🔥 САМЫЙ ВАЖНЫЙ МОМЕНТ:
+        record.date = day
         record.tracker = tracker
-
-        // и обязательно обратная связь
         tracker.addToRecords(record)
 
         try context.save()
     }
     
     func remove(tracker: TrackerCoreData, date: Date) throws {
+        let day = normalizedDate(date)
+        
         let request = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(
             format: "tracker == %@ AND date == %@",
             tracker,
-            date as NSDate
+            day as NSDate
         )
         
         if let record = try context.fetch(request).first {
@@ -118,5 +118,6 @@ final class TrackerRecordStore: NSObject {
 
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        // при необходимости можно слать нотификации
     }
 }
