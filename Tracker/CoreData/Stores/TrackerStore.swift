@@ -48,6 +48,16 @@ final class TrackerStore: NSObject {
         frc.fetchedObjects ?? []
     }
     
+    func getSchedule(from tracker: TrackerCoreData) -> [WeekDay] {
+        guard let stringArray = tracker.schedule as? [String] else {
+            return []
+        }
+        return stringArray.compactMap { raw in
+            guard let intValue = Int(raw) else { return nil }
+            return WeekDay(rawValue: intValue)
+        }
+    }
+    
     func tracker(with id: UUID) -> TrackerCoreData? {
         fetch().first { $0.id == id }
     }
@@ -60,13 +70,16 @@ final class TrackerStore: NSObject {
                 color: UIColor,
                 schedule: [WeekDay],
                 category: TrackerCategoryCoreData?) throws {
-        
+
         let tracker = TrackerCoreData(context: context)
         tracker.id = id
         tracker.name = name
         tracker.emoji = emoji
         tracker.colorHex = color.toHexString()
-        tracker.schedule = schedule.map { "\($0.rawValue)" } as NSArray
+
+        let stringArray = schedule.map { String($0.rawValue) }
+        tracker.schedule = stringArray
+
         tracker.category = category
 
         try context.save()

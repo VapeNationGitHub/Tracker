@@ -87,7 +87,10 @@ final class TrackersViewController: UIViewController {
                 .compactMap { Int($0) }
                 .compactMap { WeekDay(rawValue: $0) }
             
-            let isVisibleByDay = schedule.contains(neededDay)
+            let isVisibleByDay = schedule.isEmpty || schedule.contains(neededDay)
+            
+            print("📥 scheduleStrings:", scheduleStrings)
+            print("📅 schedule (WeekDay):", schedule)
             
             // 2) Поиск
             let name = trackerCD.name?.lowercased() ?? ""
@@ -217,6 +220,7 @@ final class TrackersViewController: UIViewController {
         let color = colorFromHex(hex)
         
         let scheduleRaw = cd.schedule as? [Int] ?? []
+        print("📅 schedule CD:", scheduleRaw)
         let schedule = scheduleRaw.compactMap { WeekDay(rawValue: $0) }
         
         return Tracker(

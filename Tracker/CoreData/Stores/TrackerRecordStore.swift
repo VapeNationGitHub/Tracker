@@ -70,7 +70,7 @@ final class TrackerRecordStore: NSObject {
     }
     
     // MARK: - Create / Delete
-    
+    /*
     func add(tracker: TrackerCoreData, date: Date) throws {
         if isCompleted(tracker: tracker, on: date) { return }
         
@@ -79,6 +79,23 @@ final class TrackerRecordStore: NSObject {
         record.date = date
         record.tracker = tracker
         
+        try context.save()
+    }
+     */
+    
+    func add(tracker: TrackerCoreData, date: Date) throws {
+        if isCompleted(tracker: tracker, on: date) { return }
+
+        let record = TrackerRecordCoreData(context: context)
+        record.id = UUID()
+        record.date = date
+
+        // 🔥 САМЫЙ ВАЖНЫЙ МОМЕНТ:
+        record.tracker = tracker
+
+        // и обязательно обратная связь
+        tracker.addToRecords(record)
+
         try context.save()
     }
     

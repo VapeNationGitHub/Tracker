@@ -241,6 +241,7 @@ final class NewHabitViewController: UIViewController {
         let scheduleVC = ScheduleViewController()
         scheduleVC.onDaysSelected = { [weak self] days in
             guard let self else { return }
+            print("🟡 Days received from Schedule:", days)
             self.selectedDays = days
             self.updateScheduleSummary()
             self.validateForm()
@@ -251,6 +252,7 @@ final class NewHabitViewController: UIViewController {
     @objc private func didTapCancel() { dismiss(animated: true) }
     
     @objc private func didTapCreate() {
+        print("🟣 selectedDays BEFORE CREATE:", selectedDays)
         guard
             let title = titleTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty,
             let emoji = selectedEmoji,
