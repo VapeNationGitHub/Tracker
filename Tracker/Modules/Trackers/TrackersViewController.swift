@@ -82,14 +82,9 @@ final class TrackersViewController: UIViewController {
         // Фильтрация
         let filtered = allTrackers.filter { trackerCD in
             // 1) Расписание
-            let scheduleStrings = trackerCD.schedule as? [String] ?? []
-            let schedule = scheduleStrings
-                .compactMap { Int($0) }
-                .compactMap { WeekDay(rawValue: $0) }
-            
+            let schedule = trackerStore.getSchedule(from: trackerCD)
             let isVisibleByDay = schedule.isEmpty || schedule.contains(neededDay)
             
-            print("📥 scheduleStrings:", scheduleStrings)
             print("📅 schedule (WeekDay):", schedule)
             
             // 2) Поиск
@@ -219,9 +214,9 @@ final class TrackersViewController: UIViewController {
         let hex = cd.colorHex ?? "#007BFF"
         let color = colorFromHex(hex)
         
-        let scheduleRaw = cd.schedule as? [Int] ?? []
-        print("📅 schedule CD:", scheduleRaw)
-        let schedule = scheduleRaw.compactMap { WeekDay(rawValue: $0) }
+        // ❗️Используем единый способ чтения расписания
+        let schedule = trackerStore.getSchedule(from: cd)
+        print("📅 schedule CD (Tracker):", schedule)
         
         return Tracker(
             id: id,
@@ -376,7 +371,8 @@ extension TrackersViewController: TrackerCellDelegate {
                 try recordStore.add(tracker: trackerCD, date: selectedDate)
             }
             
-            collectionView.reloadItems(at: [indexPath])
+            collectionView.reloadData()
+            updateVisibleState()
         } catch {
             print("❌ Error toggling record:", error)
         }

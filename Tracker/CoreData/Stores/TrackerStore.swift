@@ -49,13 +49,21 @@ final class TrackerStore: NSObject {
     }
     
     func getSchedule(from tracker: TrackerCoreData) -> [WeekDay] {
-        guard let stringArray = tracker.schedule as? [String] else {
+        guard let rawArray = tracker.schedule as? [Any], !rawArray.isEmpty else {
+            print("🟥 Invalid or empty schedule in tracker:", tracker.name ?? "Unknown")
             return []
         }
-        return stringArray.compactMap { raw in
-            guard let intValue = Int(raw) else { return nil }
-            return WeekDay(rawValue: intValue)
+
+        let weekdays: [WeekDay] = rawArray.compactMap { raw in
+            if let string = raw as? String, let intValue = Int(string), let day = WeekDay(rawValue: intValue) {
+                return day
+            } else {
+                print("🟥 Invalid raw value in schedule:", raw)
+                return nil
+            }
         }
+
+        return weekdays
     }
     
     func tracker(with id: UUID) -> TrackerCoreData? {
@@ -71,14 +79,19 @@ final class TrackerStore: NSObject {
                 schedule: [WeekDay],
                 category: TrackerCategoryCoreData?) throws {
 
+        guard !schedule.isEmpty else {
+            print("🟥 Ошибка: пустое расписание — не сохраняем трекер")
+            return
+        }
+
         let tracker = TrackerCoreData(context: context)
         tracker.id = id
         tracker.name = name
         tracker.emoji = emoji
         tracker.colorHex = color.toHexString()
-
-        let stringArray = schedule.map { String($0.rawValue) }
-        tracker.schedule = stringArray
+        
+        let scheduleStrings = schedule.map { String($0.rawValue) }
+        tracker.schedule = scheduleStrings as NSArray
 
         tracker.category = category
 
