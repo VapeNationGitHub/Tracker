@@ -190,8 +190,7 @@ final class NewHabitViewController: UIViewController {
             emojiCollection.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor, constant: 8),
             emojiCollection.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
             emojiCollection.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor),
-            emojiCollection.heightAnchor.constraint(equalToConstant: 100),
-            emojiCollection.heightAnchor.constraint(equalToConstant: 160),
+            emojiCollection.heightAnchor.constraint(equalToConstant: 204),
             
             colorLabel.topAnchor.constraint(equalTo: emojiCollection.bottomAnchor, constant: 24),
             colorLabel.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
@@ -199,7 +198,6 @@ final class NewHabitViewController: UIViewController {
             colorCollection.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 8),
             colorCollection.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
             colorCollection.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor),
-            colorCollection.heightAnchor.constraint(equalToConstant: 100),
             colorCollection.heightAnchor.constraint(equalToConstant: 180),
             
             colorCollection.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -32),

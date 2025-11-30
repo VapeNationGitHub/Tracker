@@ -36,7 +36,7 @@ final class EmojiCollectionView: UICollectionView,
         register(EmojiCell.self, forCellWithReuseIdentifier: EmojiCell.reuseIdentifier)
         showsHorizontalScrollIndicator = false
         showsVerticalScrollIndicator = false
-        isScrollEnabled = false
+        isScrollEnabled = true
     }
     
     required init?(coder: NSCoder) {
