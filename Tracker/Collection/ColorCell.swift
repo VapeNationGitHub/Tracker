@@ -88,9 +88,6 @@ final class ColorCell: UICollectionViewCell {
         colorView.backgroundColor = color
         
         if selected {
-            // внешний «ореол»
-            selectionBackgroundView.backgroundColor = color.withAlphaComponent(0.15)
-            
             // рамка 46x46, 3pt, цветом квадрата
             borderView.backgroundColor = .clear
             borderView.layer.borderWidth = 3
