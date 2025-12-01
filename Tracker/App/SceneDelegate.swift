@@ -1,14 +1,8 @@
 import UIKit
 
-// MARK: - SceneDelegate
-
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
-    // MARK: - Properties
-    
     var window: UIWindow?
-    
-    // MARK: - UIWindowSceneDelegate
     
     func scene(_ scene: UIScene,
                willConnectTo session: UISceneSession,
@@ -17,7 +11,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = RootTabBarController()
+        
+        
+        let trackersVC = TrackersViewController()
+        let nav = UINavigationController(rootViewController: trackersVC)
+        
+        
+        // Установка rootViewController
+        window.rootViewController = nav
         window.makeKeyAndVisible()
         self.window = window
     }

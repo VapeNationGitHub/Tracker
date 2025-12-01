@@ -94,11 +94,17 @@ final class NewHabitViewController: UIViewController {
         
         // Emoji и Цвет
         emojiLabel.text = "Emoji"
+        emojiLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+        emojiLabel.textColor = UIColor(named: "BlackDay")
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
+        
         emojiCollection.translatesAutoresizingMaskIntoConstraints = false
         
         colorLabel.text = "Цвет"
+        colorLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+        colorLabel.textColor = UIColor(named: "BlackDay")
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
+        
         colorCollection.translatesAutoresizingMaskIntoConstraints = false
         
         // Кнопки
@@ -133,6 +139,7 @@ final class NewHabitViewController: UIViewController {
         bottomStack.addArrangedSubview(cancelButton)
         bottomStack.addArrangedSubview(createButton)
         view.addSubview(bottomStack)
+        
     }
     
     // MARK: - Layout
@@ -180,20 +187,21 @@ final class NewHabitViewController: UIViewController {
             emojiLabel.topAnchor.constraint(equalTo: listGroupView.bottomAnchor, constant: 24),
             emojiLabel.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
             
-            emojiCollection.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor, constant: 8),
+            emojiCollection.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor, constant: 16),
             emojiCollection.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
             emojiCollection.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor),
-            emojiCollection.heightAnchor.constraint(equalToConstant: 100),
+            emojiCollection.heightAnchor.constraint(equalToConstant: 204),
             
             colorLabel.topAnchor.constraint(equalTo: emojiCollection.bottomAnchor, constant: 24),
             colorLabel.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
             
-            colorCollection.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 8),
+            colorCollection.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 16),
             colorCollection.leadingAnchor.constraint(equalTo: titleContainer.leadingAnchor),
             colorCollection.trailingAnchor.constraint(equalTo: titleContainer.trailingAnchor),
-            colorCollection.heightAnchor.constraint(equalToConstant: 100),
+            colorCollection.heightAnchor.constraint(equalToConstant: 180),
             
             colorCollection.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -32),
+            
             
             // Кнопки
             bottomStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -231,6 +239,7 @@ final class NewHabitViewController: UIViewController {
         let scheduleVC = ScheduleViewController()
         scheduleVC.onDaysSelected = { [weak self] days in
             guard let self else { return }
+            print("🟡 Days received from Schedule:", days)
             self.selectedDays = days
             self.updateScheduleSummary()
             self.validateForm()
@@ -241,6 +250,7 @@ final class NewHabitViewController: UIViewController {
     @objc private func didTapCancel() { dismiss(animated: true) }
     
     @objc private func didTapCreate() {
+        print("🟣 selectedDays BEFORE CREATE:", selectedDays)
         guard
             let title = titleTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty,
             let emoji = selectedEmoji,

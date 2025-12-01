@@ -5,35 +5,40 @@ import UIKit
 final class EmojiCell: UICollectionViewCell {
     static let reuseIdentifier = "EmojiCell"
     
-    private let label: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 32)
-        label.textAlignment = .center
-        return label
-    }()
+    // MARK: - UI
+    private let emojiLabel = UILabel()
     
+    // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
-        contentView.addSubview(label)
-        contentView.layer.cornerRadius = 12
-        contentView.layer.masksToBounds = true
-        contentView.layer.borderWidth = 2
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
-        ])
+        setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Configuration
+    // MARK: - Setup
+    private func setupUI() {
+        emojiLabel.font = .systemFont(ofSize: 32)
+        emojiLabel.textAlignment = .center
+        contentView.addSubview(emojiLabel)
+        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            emojiLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            emojiLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+        ])
+        
+        contentView.layer.cornerRadius = 16
+        contentView.clipsToBounds = true
+    }
     
+    // MARK: - Configure
     func configure(with emoji: String, selected: Bool) {
-        label.text = emoji
-        contentView.layer.borderColor = selected ? UIColor.systemBlue.cgColor : UIColor.clear.cgColor
+        emojiLabel.text = emoji
+        contentView.backgroundColor = selected ? UIColor.systemGray5 : .clear
+        contentView.layer.borderWidth = 0
+        contentView.layer.borderColor = UIColor.clear.cgColor
     }
 }
