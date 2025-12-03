@@ -32,6 +32,7 @@ final class NewHabitViewController: UIViewController {
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
     private var selectedDays: [WeekDay] = []
+    private var selectedCategory: TrackerCategoryCoreData?
     
     // MARK: - Lifecycle
     
@@ -229,10 +230,19 @@ final class NewHabitViewController: UIViewController {
     @objc private func didTapClose() { dismiss(animated: true) }
     
     @objc private func didTapCategory() {
-        let vc = UIViewController()
-        vc.view.backgroundColor = .systemBackground
-        vc.title = "Категория"
-        navigationController?.pushViewController(vc, animated: true)
+        let viewModel = CategoryViewModel()
+        let categoryVC = CategoryViewController(viewModel: viewModel)
+
+        // Передаём выбранную категорию обратно
+        viewModel.onCategorySelected = { [weak self] categoryCoreData in
+            guard let self else { return }
+
+            self.selectedCategory = categoryCoreData
+            self.categoryRow.setSubtitle(categoryCoreData.title ?? "")
+            self.navigationController?.popViewController(animated: true)
+        }
+
+        navigationController?.pushViewController(categoryVC, animated: true)
     }
     
     @objc private func didTapSchedule() {
@@ -256,14 +266,18 @@ final class NewHabitViewController: UIViewController {
             let emoji = selectedEmoji,
             let color = selectedColor
         else { return }
-        
+
+        guard let category = selectedCategory else { return }
+
         let tracker = Tracker(
             id: UUID(),
             name: title,
             color: color,
             emoji: emoji,
-            schedule: selectedDays
+            schedule: selectedDays,
+            category: category
         )
+
         onTrackerCreated?(tracker)
         dismiss(animated: true)
     }

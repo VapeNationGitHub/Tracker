@@ -9,5 +9,6 @@ extension Tracker {
         self.color = UIColor(hex: core.colorHex ?? "#0000FF")
         self.schedule = (core.schedule as? [Int] ?? [])
             .compactMap { WeekDay(rawValue: $0) }
+        self.category = core.category!
     }
 }

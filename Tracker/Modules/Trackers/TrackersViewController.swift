@@ -223,7 +223,8 @@ final class TrackersViewController: UIViewController {
             name: name,
             color: color,
             emoji: emoji,
-            schedule: schedule
+            schedule: schedule,
+            category: cd.category!
         )
     }
     
@@ -252,7 +253,7 @@ final class TrackersViewController: UIViewController {
             
             do {
                 // Категория по умолчанию
-                let categoryCD = try self.categoryStore.defaultCategory()
+                // let categoryCD = try self.categoryStore.defaultCategory()
                 
                 try self.trackerStore.create(
                     id: tracker.id,
@@ -260,7 +261,7 @@ final class TrackersViewController: UIViewController {
                     emoji: tracker.emoji,
                     color: tracker.color,
                     schedule: tracker.schedule,
-                    category: categoryCD
+                    category: tracker.category
                 )
                 
                 self.collectionView.reloadData()
