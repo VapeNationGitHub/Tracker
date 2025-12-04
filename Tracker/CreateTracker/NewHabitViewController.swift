@@ -96,14 +96,14 @@ final class NewHabitViewController: UIViewController {
         // Emoji и Цвет
         emojiLabel.text = "Emoji"
         emojiLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        emojiLabel.textColor = UIColor(named: "BlackDay")
+        emojiLabel.textColor = UIColor(resource: .blackDay)
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
         
         emojiCollection.translatesAutoresizingMaskIntoConstraints = false
         
         colorLabel.text = "Цвет"
         colorLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        colorLabel.textColor = UIColor(named: "BlackDay")
+        colorLabel.textColor = UIColor(resource: .blackDay)
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
         
         colorCollection.translatesAutoresizingMaskIntoConstraints = false

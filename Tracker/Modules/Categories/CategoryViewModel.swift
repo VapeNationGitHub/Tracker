@@ -16,6 +16,12 @@ final class CategoryViewModel {
     
     private let store = TrackerCategoryStore.shared
     
+    // MARK: - Table Helpers
+
+    func numberOfRows() -> Int {
+        categories.count
+    }
+    
     // MARK: - Public State
     
     /// Все категории, отсортированные и подготовленные для таблицы
@@ -47,7 +53,7 @@ final class CategoryViewModel {
     
     // MARK: - Table Helpers
     
-    func numberOfRows() -> Int {
+    var rowsAmount: Int {
         categories.count
     }
     

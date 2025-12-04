@@ -9,6 +9,13 @@ extension Tracker {
         self.color = UIColor(hex: core.colorHex ?? "#0000FF")
         self.schedule = (core.schedule as? [Int] ?? [])
             .compactMap { WeekDay(rawValue: $0) }
-        self.category = core.category!
+
+        if let category = core.category {
+            self.category = category
+        } else {
+            assertionFailure("❌ core.category is nil — повреждённая запись в Core Data.")
+            self.category = (try? TrackerCategoryStore.shared.defaultCategory())
+                            ?? TrackerCategoryCoreData()
+        }
     }
 }

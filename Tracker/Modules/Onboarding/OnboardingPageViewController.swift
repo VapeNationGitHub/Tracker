@@ -40,17 +40,13 @@ final class OnboardingPageViewController: UIPageViewController {
             title: "Даже если это не литры воды и йога"
         ))
         
-        
-        // Кнопка на 1 экране → листаем на 2
+        // Кнопка на обеих страницах пропускает онбординг
         page1.onNext = { [weak self] in
-            guard let self else { return }
-            self.setViewControllers([page2], direction: .forward, animated: true)
-            self.pageControl.currentPage = 1
+            self?.skipOnboarding()
         }
         
-        // Кнопка на 2 экране → вход в приложение
         page2.onNext = { [weak self] in
-            self?.finishOnboarding()
+            self?.skipOnboarding()
         }
         
         pages = [page1, page2]
@@ -77,49 +73,39 @@ final class OnboardingPageViewController: UIPageViewController {
         }
     }
     
-    
     // MARK: - Setup PageControl
-    
+
     private func setupPageControl() {
         pageControl.numberOfPages = pages.count
         pageControl.currentPage = 0
-        
-        pageControl.currentPageIndicatorTintColor = .black
-        pageControl.pageIndicatorTintColor = .lightGray
-        
+
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(pageControl)
-        
+
         NSLayoutConstraint.activate([
             pageControl.topAnchor.constraint(equalTo: view.topAnchor, constant: 678),
             pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
-        
-        pageControl.currentPageIndicatorTintColor = UIColor(named: "Black [day]") ?? .black
-        pageControl.pageIndicatorTintColor = UIColor(named: "Black [day]")?.withAlphaComponent(0.3) ?? .lightGray
+
+        let blackDayColor = UIColor(resource: .blackDay)
+
+        pageControl.currentPageIndicatorTintColor = blackDayColor
+        pageControl.pageIndicatorTintColor = blackDayColor.withAlphaComponent(0.3)
     }
     
     
     // MARK: - Finish Onboarding
     
+    var onFinish: (() -> Void)?
+    
     private func finishOnboarding() {
-        guard let window = view.window else { return }
-        
-        // Сохраняем флаг
-        OnboardingStorage().hasSeenOnboarding = true
-        
-        let tabBar = RootTabBarController()
-        tabBar.modalPresentationStyle = .fullScreen
-        
-        UIView.transition(
-            with: window,
-            duration: 0.4,
-            options: .transitionCrossDissolve,
-            animations: {
-                window.rootViewController = tabBar
-            },
-            completion: nil
-        )
+        OnboardingStorage.shared.hasSeenOnboarding = true
+        onFinish?()
+    }
+    
+    // MARK: - Пропустить Onboarding
+    func skipOnboarding() {
+        finishOnboarding()
     }
 }
 
@@ -134,8 +120,13 @@ extension OnboardingPageViewController: UIPageViewControllerDataSource, UIPageVi
         viewControllerBefore viewController: UIViewController
     ) -> UIViewController? {
         
-        guard let index = pages.firstIndex(of: viewController as! OnboardingViewController),
-              index > 0 else { return nil }
+        guard
+            let vc = viewController as? OnboardingViewController,
+            let index = pages.firstIndex(of: vc),
+            index > 0
+        else {
+            return nil
+        }
         
         return pages[index - 1]
     }
@@ -147,9 +138,11 @@ extension OnboardingPageViewController: UIPageViewControllerDataSource, UIPageVi
         viewControllerAfter viewController: UIViewController
     ) -> UIViewController? {
         
-        guard let index = pages.firstIndex(of: viewController as! OnboardingViewController),
-              index < pages.count - 1 else {
-            // На последней странице свайп вперёд НЕДОСТУПЕН, только по кнопке
+        guard
+            let vc = viewController as? OnboardingViewController,
+            let index = pages.firstIndex(of: vc),
+            index < pages.count - 1
+        else {
             return nil
         }
         

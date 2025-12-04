@@ -1,5 +1,3 @@
-import UIKit
-
 // MARK: - OnboardingPage
 
 struct OnboardingPage {

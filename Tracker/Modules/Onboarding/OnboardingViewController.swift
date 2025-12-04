@@ -61,7 +61,7 @@ final class OnboardingViewController: UIViewController {
             string: page.title,
             attributes: [
                 .font: UIFont.systemFont(ofSize: 32, weight: .bold),
-                .foregroundColor: UIColor(named: "Black [day]") ?? .black,
+                .foregroundColor: UIColor(resource: .blackDay),
                 .paragraphStyle: paragraph
             ]
         )
@@ -71,16 +71,22 @@ final class OnboardingViewController: UIViewController {
         
         // Кнопка
         button.setTitle("Вот это технологии!", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor(named: "Black [day]") ?? .black
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.contentEdgeInsets = UIEdgeInsets(
+        var config = UIButton.Configuration.filled()
+        config.baseBackgroundColor = UIColor(resource: .blackDay)
+        config.baseForegroundColor = .white
+        config.cornerStyle = .fixed
+        config.contentInsets = NSDirectionalEdgeInsets(
             top: 19,
-            left: 32,
+            leading: 32,
             bottom: 19,
-            right: 32
+            trailing: 32
         )
+
+        button.layer.cornerRadius = 16
+        button.clipsToBounds = true
+        button.configuration = config
         button.addTarget(self, action: #selector(nextTapped), for: .touchUpInside)
         
         // Добавляем UI

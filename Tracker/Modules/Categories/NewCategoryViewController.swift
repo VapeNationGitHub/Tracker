@@ -25,7 +25,7 @@ final class NewCategoryViewController: UIViewController {
         let tf = UITextField()
         tf.placeholder = "Введите название категории"
         tf.font = .systemFont(ofSize: 17)
-        tf.textColor = UIColor(named: "BlackDay") ?? .label
+        tf.textColor = UIColor(resource: .blackDay)
         tf.attributedPlaceholder = NSAttributedString(
             string: "Введите название категории",
             attributes: [.foregroundColor: UIColor.placeholderText]
@@ -113,7 +113,7 @@ final class NewCategoryViewController: UIViewController {
         doneButton.isEnabled = enabled
         
         if enabled {
-            doneButton.backgroundColor = UIColor(named: "BlackDay") ?? .black
+            doneButton.backgroundColor = UIColor(resource: .blackDay)
             doneButton.setTitleColor(.white, for: .normal)
         } else {
             doneButton.backgroundColor = .systemGray4

@@ -32,7 +32,7 @@ final class CategoryViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Добавить категорию", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor(named: "BlackDay") ?? .black
+        button.backgroundColor = UIColor(resource: .blackDay)
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -41,7 +41,7 @@ final class CategoryViewController: UIViewController {
     // MARK: - Empty State
     
     private let emptyIcon: UIImageView = {
-        let iv = UIImageView(image: UIImage(named: "Star"))
+        let iv = UIImageView(image: UIImage(resource: .star))
         iv.contentMode = .scaleAspectFit
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
