@@ -9,4 +9,5 @@ struct Tracker {
     let color: UIColor            // Цвет трекера
     let emoji: String              // Эмодзи
     let schedule: [WeekDay]        // Расписание (дни недели)
+    let category: TrackerCategoryCoreData
 }

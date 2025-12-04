@@ -40,11 +40,6 @@ final class TrackersViewController: UIViewController {
         title: "Что будем отслеживать?"
     )
     
-    private let notFoundView = EmptyStateView(
-        image: UIImage(named: "error"),
-        title: "Ничего не найдено"
-    )
-    
     // MARK: - State / Filtering
     
     private var searchText: String = "" {
@@ -61,45 +56,40 @@ final class TrackersViewController: UIViewController {
         }
     }
     
-    /// Секция для collectionView — категория + трекеры этой категории
+    /// Секция = категория + трекеры
     private struct Section {
         let title: String
         let trackers: [TrackerCoreData]
     }
     
-    /// Все секции с учётом фильтра по дате и поиску
+    // MARK: - Grouped Trackers
+    
     private var sections: [Section] {
         let allTrackers = trackerStore.fetch()
         
-        // День недели из выбранной даты
         let calendarWeekday = Calendar.current.component(.weekday, from: selectedDate)
         let neededDay = WeekDay.from(calendarWeekday: calendarWeekday)
         
-        let query = searchText
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
+        let query = searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // Фильтрация
+        // Фильтруем по дате + поиску
         let filtered = allTrackers.filter { trackerCD in
-            // 1) Расписание
             let schedule = trackerStore.getSchedule(from: trackerCD)
-            let isVisibleByDay = schedule.isEmpty || schedule.contains(neededDay)
+            let visibleByDay = schedule.isEmpty || schedule.contains(neededDay)
             
-            print("📅 schedule (WeekDay):", schedule)
+            let matchesSearch = query.isEmpty
+                ? true
+                : (trackerCD.name?.lowercased().contains(query) ?? false)
             
-            // 2) Поиск
-            let name = trackerCD.name?.lowercased() ?? ""
-            let matchesSearch = query.isEmpty ? true : name.contains(query)
-            
-            return isVisibleByDay && matchesSearch
+            return visibleByDay && matchesSearch
         }
         
-        // Группируем по названию категории
-        let grouped = Dictionary(grouping: filtered) { (tracker: TrackerCoreData) -> String in
-            tracker.category?.title ?? "Привычки"
+        // Группировка по категории
+        let grouped = Dictionary(grouping: filtered) { t in
+            t.category?.title ?? "Привычки"
         }
         
-        // Сортируем категории по названию
+        // Сортировка по алфавиту
         return grouped
             .sorted { $0.key < $1.key }
             .map { Section(title: $0.key, trackers: $0.value) }
@@ -123,7 +113,7 @@ final class TrackersViewController: UIViewController {
         )
     }
     
-    // MARK: - Core Data Updates
+    // MARK: - Core Data Update
     
     @objc private func onStoreUpdate() {
         collectionView.reloadData()
@@ -147,7 +137,7 @@ final class TrackersViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
-        definesPresentationContext = true
+        
         navigationController?.navigationBar.prefersLargeTitles = true
     }
     
@@ -156,14 +146,22 @@ final class TrackersViewController: UIViewController {
         layout.minimumInteritemSpacing = 9
         layout.minimumLineSpacing = 16
         layout.sectionInset = UIEdgeInsets(top: 16, left: 9, bottom: 16, right: 9)
-        layout.estimatedItemSize = .zero
+        
+        collectionView.register(
+            CategoryHeaderView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: CategoryHeaderView.reuseIdentifier
+        )
         
         collectionView.collectionViewLayout = layout
         collectionView.dataSource = self
         collectionView.delegate = self
-        collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.reuseIdentifier)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.register(
+            TrackerCell.self,
+            forCellWithReuseIdentifier: TrackerCell.reuseIdentifier
+        )
         
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
         
         NSLayoutConstraint.activate([
@@ -187,59 +185,24 @@ final class TrackersViewController: UIViewController {
     }
     
     private func updateVisibleState() {
-        let hasAny = !sections.isEmpty
-        
-        if hasAny {
-            emptyView.isHidden = true
-        } else {
-            emptyView.isHidden = false
-            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                emptyView.configure(image: UIImage(named: "Star"),
-                                    title: "Что будем отслеживать?")
-            } else {
-                emptyView.configure(image: UIImage(named: "error"),
-                                    title: "Ничего не найдено")
-            }
-        }
+        emptyView.isHidden = !sections.isEmpty
     }
     
-    // MARK: - Helpers (Mapping)
+    // MARK: - Mapping
     
-    /// Преобразуем CoreData-модель в доменную Tracker
     private func makeTracker(from cd: TrackerCoreData) -> Tracker {
-        let id = cd.id ?? UUID()
-        let name = cd.name ?? ""
-        let emoji = cd.emoji ?? "🙂"
-        
-        let hex = cd.colorHex ?? "#007BFF"
-        let color = colorFromHex(hex)
-        
-        // ❗️Используем единый способ чтения расписания
-        let schedule = trackerStore.getSchedule(from: cd)
-        print("📅 schedule CD (Tracker):", schedule)
-        
-        return Tracker(
-            id: id,
-            name: name,
-            color: color,
-            emoji: emoji,
-            schedule: schedule
+        Tracker(
+            id: cd.id ?? UUID(),
+            name: cd.name ?? "",
+            color: colorFromHex(cd.colorHex ?? "#007BFF"),
+            emoji: cd.emoji ?? "🙂",
+            schedule: trackerStore.getSchedule(from: cd),
+            category: cd.category!
         )
     }
     
-    /// Преобразуем HEX-строку в UIColor
     private func colorFromHex(_ hex: String) -> UIColor {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
-        
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-        
-        let r = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
-        let g = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
-        let b = CGFloat(rgb & 0x0000FF) / 255.0
-        
-        return UIColor(red: r, green: g, blue: b, alpha: 1.0)
+        UIColor(hex: hex) ?? .blue
     }
     
     // MARK: - Actions
@@ -248,25 +211,23 @@ final class TrackersViewController: UIViewController {
         let habitVC = NewHabitViewController()
         
         habitVC.onTrackerCreated = { [weak self] tracker in
-            guard let self = self else { return }
+            guard let self else { return }
             
             do {
-                // Категория по умолчанию
-                let categoryCD = try self.categoryStore.defaultCategory()
-                
-                try self.trackerStore.create(
+                try trackerStore.create(
                     id: tracker.id,
                     name: tracker.name,
                     emoji: tracker.emoji,
                     color: tracker.color,
                     schedule: tracker.schedule,
-                    category: categoryCD
+                    category: tracker.category
                 )
                 
                 self.collectionView.reloadData()
                 self.updateVisibleState()
+                
             } catch {
-                print("❌ Error creating tracker:", error)
+                print("❌ error creating tracker:", error)
             }
         }
         
@@ -283,18 +244,19 @@ final class TrackersViewController: UIViewController {
 
 extension TrackersViewController: UICollectionViewDataSource {
     
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
+    func numberOfSections(in cv: UICollectionView) -> Int {
         sections.count
     }
     
-    func collectionView(_ collectionView: UICollectionView,
+    func collectionView(_ cv: UICollectionView,
                         numberOfItemsInSection section: Int) -> Int {
         sections[section].trackers.count
     }
     
-    func collectionView(_ collectionView: UICollectionView,
+    func collectionView(_ cv: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(
+        
+        let cell = cv.dequeueReusableCell(
             withReuseIdentifier: TrackerCell.reuseIdentifier,
             for: indexPath
         ) as! TrackerCell
@@ -302,53 +264,90 @@ extension TrackersViewController: UICollectionViewDataSource {
         let trackerCD = sections[indexPath.section].trackers[indexPath.item]
         let tracker = makeTracker(from: trackerCD)
         
-        let isCompletedToday = recordStore.isCompleted(
-            tracker: trackerCD,
-            on: selectedDate
-        )
+        let isCompleted = recordStore.isCompleted(tracker: trackerCD, on: selectedDate)
         let completedDays = recordStore.completedCount(for: trackerCD)
         
-        // Блокировка будущей даты
         let isFuture = Calendar.current.startOfDay(for: selectedDate) >
-        Calendar.current.startOfDay(for: Date())
+                       Calendar.current.startOfDay(for: Date())
         
-        cell.configure(with: tracker,
-                       isCompleted: isCompletedToday,
-                       completedDays: completedDays)
+        cell.configure(
+            with: tracker,
+            isCompleted: isCompleted,
+            completedDays: completedDays
+        )
+        
         cell.setCompletionEnabled(!isFuture)
         cell.delegate = self
         
         return cell
     }
+    
+    // MARK: - Header
+    
+    func collectionView(
+        _ cv: UICollectionView,
+        viewForSupplementaryElementOfKind kind: String,
+        at indexPath: IndexPath
+    ) -> UICollectionReusableView {
+        
+        guard kind == UICollectionView.elementKindSectionHeader else {
+            return UICollectionReusableView()
+        }
+        
+        let header = cv.dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: CategoryHeaderView.reuseIdentifier,
+            for: indexPath
+        ) as! CategoryHeaderView
+        
+        header.configure(title: sections[indexPath.section].title)
+        return header
+    }
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
+// MARK: - Layout
 
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+    func collectionView(
+        _ cv: UICollectionView,
+        layout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath
+    ) -> CGSize {
+        
         let spacing: CGFloat = 9
         let columns: CGFloat = 2
         let totalSpacing = (columns + 1) * spacing
-        let availableWidth = collectionView.bounds.width - totalSpacing
-        let itemWidth = floor(availableWidth / columns)
-        return CGSize(width: itemWidth, height: 148)
+        let available = cv.bounds.width - totalSpacing
+        
+        return CGSize(
+            width: floor(available / columns),
+            height: 148
+        )
+    }
+    
+    func collectionView(
+        _ cv: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        referenceSizeForHeaderInSection section: Int
+    ) -> CGSize {
+        
+        CGSize(width: cv.bounds.width, height: 34)
     }
 }
 
-// MARK: - UISearchResultsUpdating
+// MARK: - Search
 
 extension TrackersViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        let newText = searchController.searchBar.text ?? ""
-        if newText == searchText { return }
-        searchText = newText
+        let new = searchController.searchBar.text ?? ""
+        if new != searchText {
+            searchText = new
+        }
     }
 }
 
-// MARK: - UISearchBarDelegate
+// MARK: - SearchBar Delegate
 
 extension TrackersViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
@@ -360,9 +359,9 @@ extension TrackersViewController: UISearchBarDelegate {
 
 extension TrackersViewController: TrackerCellDelegate {
     func trackerCellDidTapComplete(_ cell: TrackerCell) {
-        guard let indexPath = collectionView.indexPath(for: cell) else { return }
+        guard let index = collectionView.indexPath(for: cell) else { return }
         
-        let trackerCD = sections[indexPath.section].trackers[indexPath.item]
+        let trackerCD = sections[index.section].trackers[index.item]
         
         do {
             if recordStore.isCompleted(tracker: trackerCD, on: selectedDate) {
@@ -373,12 +372,9 @@ extension TrackersViewController: TrackerCellDelegate {
             
             collectionView.reloadData()
             updateVisibleState()
+            
         } catch {
-            print("❌ Error toggling record:", error)
+            print("❌ error toggling record:", error)
         }
     }
 }
-
-// MARK: - UICollectionViewDelegate
-
-extension TrackersViewController: UICollectionViewDelegate { }

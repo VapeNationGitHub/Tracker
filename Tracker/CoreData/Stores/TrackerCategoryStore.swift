@@ -9,9 +9,15 @@ final class TrackerCategoryStore: NSObject {
     
     static let shared = TrackerCategoryStore()
     
-    // MARK: - Properties
+    // MARK: - Callbacks
+    
+    var onUpdate: (() -> Void)?
+    
+    // MARK: - Core Data
     
     private let context: NSManagedObjectContext
+    
+    /// FetchedResultsController для автоматического отслеживания изменений Core Data
     private lazy var frc: NSFetchedResultsController<TrackerCategoryCoreData> = {
         let request = TrackerCategoryCoreData.fetchRequest()
         request.sortDescriptors = [
@@ -37,17 +43,20 @@ final class TrackerCategoryStore: NSObject {
         do {
             try frc.performFetch()
         } catch {
-            print("❌ TrackerCategoryStore FRC error:", error)
+            print("❌ Error: TrackerCategoryStore FRC performFetch failed —", error)
         }
     }
     
     // MARK: - Fetch
     
+    /// Возвращает текущий список категорий
     func fetch() -> [TrackerCategoryCoreData] {
         frc.fetchedObjects ?? []
     }
     
-    /// Категория по умолчанию "Привычки"
+    // MARK: - Default Category
+    
+    /// Возвращает категорию по умолчанию "Привычки"
     func defaultCategory() throws -> TrackerCategoryCoreData {
         if let existing = fetch().first(where: { $0.title == "Привычки" }) {
             return existing
@@ -57,22 +66,60 @@ final class TrackerCategoryStore: NSObject {
         category.id = UUID()
         category.title = "Привычки"
         
-        try context.save()
+        do {
+            try context.save()
+        } catch {
+            print("❌ Error saving default category:", error)
+            throw error
+        }
+        
         return category
     }
     
-    // MARK: - Create / Delete (на будущее)
+    // MARK: - CRUD
     
+    /// Создание новой категории
     func create(id: UUID = UUID(), title: String) throws {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
         let category = TrackerCategoryCoreData(context: context)
         category.id = id
-        category.title = title
-        try context.save()
+        category.title = trimmed
+        
+        do {
+            try context.save()
+        } catch {
+            print("❌ Error creating category:", error)
+            throw error
+        }
     }
     
+    /// Удаление категории
     func delete(_ category: TrackerCategoryCoreData) throws {
         context.delete(category)
-        try context.save()
+        
+        do {
+            try context.save()
+        } catch {
+            print("❌ Error deleting category:", error)
+            throw error
+        }
+    }
+    
+    /// Обновление категории
+    func update(_ category: TrackerCategoryCoreData, title: String) throws {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        category.title = trimmed
+        
+        do {
+            try context.save()
+        } catch {
+            print("❌ Error updating category:", error)
+            throw error
+        }
     }
 }
 
@@ -80,5 +127,6 @@ final class TrackerCategoryStore: NSObject {
 
 extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        onUpdate?()
     }
 }

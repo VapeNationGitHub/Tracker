@@ -4,21 +4,40 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     var window: UIWindow?
     
-    func scene(_ scene: UIScene,
-               willConnectTo session: UISceneSession,
-               options connectionOptions: UIScene.ConnectionOptions) {
-        
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         let window = UIWindow(windowScene: windowScene)
         
+        let storage = OnboardingStorage.shared
         
-        let trackersVC = TrackersViewController()
-        let nav = UINavigationController(rootViewController: trackersVC)
+        if storage.hasSeenOnboarding {
+            window.rootViewController = RootTabBarController()
+        } else {
+            
+            let onboarding = OnboardingPageViewController()
+            
+            onboarding.onFinish = {
+                storage.hasSeenOnboarding = true
+                
+                UIView.transition(
+                    with: window,
+                    duration: 0.4,
+                    options: .transitionCrossDissolve,
+                    animations: {
+                        window.rootViewController = RootTabBarController()
+                    },
+                    completion: nil
+                )
+            }
+            
+            window.rootViewController = onboarding
+        }
         
-        
-        // Установка rootViewController
-        window.rootViewController = nav
         window.makeKeyAndVisible()
         self.window = window
     }
