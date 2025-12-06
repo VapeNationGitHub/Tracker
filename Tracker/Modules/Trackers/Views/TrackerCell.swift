@@ -90,7 +90,12 @@ final class TrackerCell: UICollectionViewCell {
     func configure(with tracker: Tracker, isCompleted: Bool, completedDays: Int) {
         emojiLabel.text = tracker.emoji
         nameLabel.text = tracker.name
-        counterLabel.text = "Дней: \(completedDays)"
+        let pluralString = String.localizedStringWithFormat(
+            NSLocalizedString("days_count", comment: ""),
+            completedDays
+        )
+
+        counterLabel.text = pluralString
         backgroundCardView.backgroundColor = tracker.color
         self.isCompleted = isCompleted
         
