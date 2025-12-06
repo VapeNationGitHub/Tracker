@@ -13,8 +13,8 @@ final class NewHabitViewController: UIViewController {
     private let titleContainer = UIView()
     
     private let listGroupView = UIView()
-    private let categoryRow = ListRowView(title: "Категория")
-    private let scheduleRow = ListRowView(title: "Расписание")
+    private let categoryRow = ListRowView(title: NSLocalizedString("category_title", comment: ""))
+    private let scheduleRow = ListRowView(title: NSLocalizedString("schedule_title", comment: ""))
     
     private let emojiLabel = UILabel()
     private let emojiCollection = EmojiCollectionView()
@@ -51,7 +51,7 @@ final class NewHabitViewController: UIViewController {
     // MARK: - Setup UI
     
     private func setupUI() {
-        title = "Новая привычка"
+        title = NSLocalizedString("new_habit_title", comment: "")
         view.backgroundColor = .systemBackground
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(
@@ -76,7 +76,7 @@ final class NewHabitViewController: UIViewController {
         titleTextField.textAlignment = .left
         titleTextField.returnKeyType = .done
         titleTextField.attributedPlaceholder = NSAttributedString(
-            string: "Введите название трекера",
+            string: NSLocalizedString("category_placeholder", comment: ""),
             attributes: [.foregroundColor: UIColor.placeholderText]
         )
         titleTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
@@ -101,7 +101,7 @@ final class NewHabitViewController: UIViewController {
         
         emojiCollection.translatesAutoresizingMaskIntoConstraints = false
         
-        colorLabel.text = "Цвет"
+        colorLabel.text = NSLocalizedString("color_title", comment: "")
         colorLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         colorLabel.textColor = UIColor(resource: .blackDay)
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -109,7 +109,7 @@ final class NewHabitViewController: UIViewController {
         colorCollection.translatesAutoresizingMaskIntoConstraints = false
         
         // Кнопки
-        cancelButton.setTitle("Отменить", for: .normal)
+        cancelButton.setTitle(NSLocalizedString("cancel_button", comment: ""), for: .normal)
         cancelButton.setTitleColor(.systemRed, for: .normal)
         cancelButton.backgroundColor = .clear
         cancelButton.layer.cornerRadius = 14
@@ -117,7 +117,7 @@ final class NewHabitViewController: UIViewController {
         cancelButton.layer.borderColor = UIColor.systemRed.cgColor
         cancelButton.addTarget(self, action: #selector(didTapCancel), for: .touchUpInside)
         
-        createButton.setTitle("Создать", for: .normal)
+        createButton.setTitle(NSLocalizedString("create_button", comment: ""), for: .normal)
         createButton.setTitleColor(.white, for: .normal)
         createButton.layer.cornerRadius = 14
         createButton.addTarget(self, action: #selector(didTapCreate), for: .touchUpInside)
@@ -232,16 +232,16 @@ final class NewHabitViewController: UIViewController {
     @objc private func didTapCategory() {
         let viewModel = CategoryViewModel()
         let categoryVC = CategoryViewController(viewModel: viewModel)
-
+        
         // Передаём выбранную категорию обратно
         viewModel.onCategorySelected = { [weak self] categoryCoreData in
             guard let self else { return }
-
+            
             self.selectedCategory = categoryCoreData
             self.categoryRow.setSubtitle(categoryCoreData.title ?? "")
             self.navigationController?.popViewController(animated: true)
         }
-
+        
         navigationController?.pushViewController(categoryVC, animated: true)
     }
     
@@ -266,9 +266,9 @@ final class NewHabitViewController: UIViewController {
             let emoji = selectedEmoji,
             let color = selectedColor
         else { return }
-
+        
         guard let category = selectedCategory else { return }
-
+        
         let tracker = Tracker(
             id: UUID(),
             name: title,
@@ -277,7 +277,7 @@ final class NewHabitViewController: UIViewController {
             schedule: selectedDays,
             category: category
         )
-
+        
         onTrackerCreated?(tracker)
         dismiss(animated: true)
     }
@@ -313,10 +313,17 @@ final class NewHabitViewController: UIViewController {
     
     private func formattedDays(_ days: [WeekDay]) -> String {
         guard !days.isEmpty else { return "" }
+        
         let short: [WeekDay: String] = [
-            .monday: "Пн", .tuesday: "Вт", .wednesday: "Ср",
-            .thursday: "Чт", .friday: "Пт", .saturday: "Сб", .sunday: "Вс"
+            .monday:    NSLocalizedString("mon_short", comment: ""),
+            .tuesday:   NSLocalizedString("tue_short", comment: ""),
+            .wednesday: NSLocalizedString("wed_short", comment: ""),
+            .thursday:  NSLocalizedString("thu_short", comment: ""),
+            .friday:    NSLocalizedString("fri_short", comment: ""),
+            .saturday:  NSLocalizedString("sat_short", comment: ""),
+            .sunday:    NSLocalizedString("sun_short", comment: "")
         ]
+        
         return days.sorted { $0.rawValue < $1.rawValue }
             .compactMap { short[$0] }
             .joined(separator: ", ")
@@ -333,8 +340,16 @@ final class NewHabitViewController: UIViewController {
     private func addKeyboardToolbarToTextField() {
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
-        let flexible = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let done = UIBarButtonItem(title: "Готово", style: .done, target: self, action: #selector(dismissKeyboard))
+        let flexible = UIBarButtonItem(
+            barButtonSystemItem: .flexibleSpace,
+            target: nil,
+            action: nil)
+        let done = UIBarButtonItem(
+            title: NSLocalizedString("done_button", comment: ""),
+            style: .done,
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
         toolbar.setItems([flexible, done], animated: false)
         titleTextField.inputAccessoryView = toolbar
     }

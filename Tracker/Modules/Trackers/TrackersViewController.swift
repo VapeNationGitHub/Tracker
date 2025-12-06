@@ -20,7 +20,7 @@ final class TrackersViewController: UIViewController {
     
     private lazy var searchController: UISearchController = {
         let sc = UISearchController(searchResultsController: nil)
-        sc.searchBar.placeholder = "Поиск"
+        sc.searchBar.placeholder = NSLocalizedString("search_placeholder", comment: "")
         sc.obscuresBackgroundDuringPresentation = false
         sc.searchResultsUpdater = self
         sc.searchBar.delegate = self
@@ -37,7 +37,7 @@ final class TrackersViewController: UIViewController {
     
     private let emptyView = EmptyStateView(
         image: UIImage(named: "Star"),
-        title: "Что будем отслеживать?"
+        title: NSLocalizedString("empty_trackers_placeholder", comment: "")
     )
     
     // MARK: - State / Filtering
@@ -86,7 +86,10 @@ final class TrackersViewController: UIViewController {
         
         // Группировка по категории
         let grouped = Dictionary(grouping: filtered) { t in
-            t.category?.title ?? "Привычки"
+            let categoryTitle = t.category?.title
+            return categoryTitle?.isEmpty == false
+                ? categoryTitle!
+                : NSLocalizedString("habits_title", comment: "")
         }
         
         // Сортировка по алфавиту
@@ -124,7 +127,7 @@ final class TrackersViewController: UIViewController {
     
     private func setupView() {
         view.backgroundColor = .systemBackground
-        title = "Трекеры"
+        title = NSLocalizedString("trackers_title", comment: "")
     }
     
     private func setupNavigationBar() {

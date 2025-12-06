@@ -17,7 +17,7 @@ final class CreateCategoryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Новая категория"
+        title = NSLocalizedString("new_category_title", comment: "")
         view.backgroundColor = .systemBackground
         
         setupTextField()
@@ -28,7 +28,7 @@ final class CreateCategoryViewController: UIViewController {
     // MARK: - Setup UI
     
     private func setupTextField() {
-        textField.placeholder = "Введите название категории"
+        textField.placeholder = NSLocalizedString("category_placeholder", comment: "")
         textField.backgroundColor = .secondarySystemBackground
         textField.layer.cornerRadius = 16
         textField.setLeftPaddingPoints(16)
@@ -46,7 +46,7 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     private func setupDoneButton() {
-        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitle(NSLocalizedString("done_button", comment: ""), for: .normal)
         doneButton.layer.cornerRadius = 16
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)

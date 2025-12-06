@@ -17,14 +17,14 @@ final class StatisticsViewController: UIViewController {
     /// Настройка базового UI
     private func setupView() {
         view.backgroundColor = .systemBackground
-        title = "Статистика"
+        title = NSLocalizedString("statistics_title", comment: "")
     }
     
     /// Добавление временного текста-заглушки
     private func setupPlaceholder() {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Здесь появится статистика"
+        label.text = NSLocalizedString("statistics_empty", comment: "")
         label.textColor = .secondaryLabel
         
         view.addSubview(label)
