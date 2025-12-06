@@ -185,7 +185,29 @@ final class TrackersViewController: UIViewController {
     }
     
     private func updateVisibleState() {
-        emptyView.isHidden = !sections.isEmpty
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if !query.isEmpty {
+            if sections.isEmpty {
+                emptyView.isHidden = false
+                emptyView.configure(
+                    image: UIImage(named: "error"),
+                    title: NSLocalizedString("nothing_found", comment: "")
+                )
+            } else {
+                emptyView.isHidden = true
+            }
+        } else {
+            if sections.isEmpty {
+                emptyView.isHidden = false
+                emptyView.configure(
+                    image: UIImage(named: "Star"),
+                    title: NSLocalizedString("empty_trackers_placeholder", comment: "")
+                )
+            } else {
+                emptyView.isHidden = true
+            }
+        }
     }
     
     // MARK: - Mapping
