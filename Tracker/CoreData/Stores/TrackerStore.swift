@@ -98,6 +98,29 @@ final class TrackerStore: NSObject {
         try context.save()
     }
     
+    // MARK: - Update
+
+    func update(
+        trackerCD: TrackerCoreData,
+        name: String,
+        emoji: String,
+        color: UIColor,
+        schedule: [WeekDay],
+        category: TrackerCategoryCoreData?
+    ) throws {
+
+        trackerCD.name = name
+        trackerCD.emoji = emoji
+        trackerCD.colorHex = color.toHexString()
+
+        let scheduleStrings = schedule.map { String($0.rawValue) }
+        trackerCD.schedule = scheduleStrings as NSArray
+
+        trackerCD.category = category
+
+        try context.save()
+    }
+    
     // MARK: - Delete
     
     func delete(_ tracker: TrackerCoreData) throws {

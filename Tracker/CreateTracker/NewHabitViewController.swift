@@ -4,6 +4,12 @@ import UIKit
 
 final class NewHabitViewController: UIViewController {
     
+    convenience init(trackerToEdit: Tracker, completedDays: Int) {
+        self.init()
+        self.trackerToEdit = trackerToEdit
+        self.completedDays = completedDays
+    }
+    
     // MARK: - UI
     
     private let scrollView = UIScrollView()
@@ -28,11 +34,18 @@ final class NewHabitViewController: UIViewController {
     // MARK: - Data
     
     var onTrackerCreated: ((Tracker) -> Void)?
+    var onTrackerEdited: ((Tracker) -> Void)?
+    var trackerToEdit: Tracker?
+    func setEditingTracker(_ tracker: Tracker) {
+        self.trackerToEdit = tracker
+    }
+    var completedDays: Int = 0
     
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
     private var selectedDays: [WeekDay] = []
     private var selectedCategory: TrackerCategoryCoreData?
+    
     
     // MARK: - Lifecycle
     
@@ -45,10 +58,45 @@ final class NewHabitViewController: UIViewController {
         addKeyboardToolbarToTextField()
         validateForm()
         updateScheduleSummary()
-        titleTextField.becomeFirstResponder()
+        // titleTextField.becomeFirstResponder()
+        
+        if let tracker = trackerToEdit {
+            title = NSLocalizedString("edit_habit_title", comment: "Редактирование привычки")
+            
+            titleTextField.text = tracker.name
+            selectedEmoji = tracker.emoji
+            selectedColor = tracker.color
+            selectedDays = tracker.schedule
+            selectedCategory = tracker.category
+
+            createButton.setTitle(NSLocalizedString("save_button", comment: "Сохранить"), for: .normal)
+
+            categoryRow.setSubtitle(tracker.category.title ?? "")
+            updateScheduleSummary()
+
+            emojiCollection.preselect(emoji: tracker.emoji)
+            colorCollection.preselect(color: tracker.color)
+            
+            daysCountLabel.isHidden = false
+
+            let plural = String.localizedStringWithFormat(
+                NSLocalizedString("days_count", comment: ""),
+                completedDays
+            )
+            daysCountLabel.text = plural
+        }
     }
     
     // MARK: - Setup UI
+    
+    private let daysCountLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        label.textColor = UIColor(resource: .blackDay)
+        label.textAlignment = .center
+        label.isHidden = true
+        return label
+    }()
     
     private func setupUI() {
         title = NSLocalizedString("new_habit_title", comment: "")
@@ -128,6 +176,7 @@ final class NewHabitViewController: UIViewController {
         bottomStack.translatesAutoresizingMaskIntoConstraints = false
         
         // Иерархия
+        contentView.addSubview(daysCountLabel)
         contentView.addSubview(titleContainer)
         titleContainer.addSubview(titleTextField)
         
@@ -146,6 +195,9 @@ final class NewHabitViewController: UIViewController {
     // MARK: - Layout
     
     private func layoutUI() {
+        
+        daysCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             // Scroll
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -157,8 +209,12 @@ final class NewHabitViewController: UIViewController {
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             
+            // DaysCountLabel
+            daysCountLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            daysCountLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            
             // Название
-            titleContainer.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            titleContainer.topAnchor.constraint(equalTo: daysCountLabel.bottomAnchor, constant: 24),
             titleContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             titleContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             titleContainer.heightAnchor.constraint(equalToConstant: 75),
@@ -260,25 +316,30 @@ final class NewHabitViewController: UIViewController {
     @objc private func didTapCancel() { dismiss(animated: true) }
     
     @objc private func didTapCreate() {
-        print("🟣 selectedDays BEFORE CREATE:", selectedDays)
+
         guard
-            let title = titleTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty,
+            let title = titleTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !title.isEmpty,
             let emoji = selectedEmoji,
-            let color = selectedColor
+            let color = selectedColor,
+            let category = selectedCategory
         else { return }
-        
-        guard let category = selectedCategory else { return }
-        
+
         let tracker = Tracker(
-            id: UUID(),
+            id: trackerToEdit?.id ?? UUID(),
             name: title,
             color: color,
             emoji: emoji,
             schedule: selectedDays,
             category: category
         )
-        
-        onTrackerCreated?(tracker)
+
+        if trackerToEdit != nil {
+            onTrackerEdited?(tracker)
+        } else {
+            onTrackerCreated?(tracker)
+        }
+
         dismiss(animated: true)
     }
     

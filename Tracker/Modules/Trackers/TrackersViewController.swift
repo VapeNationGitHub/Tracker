@@ -227,7 +227,7 @@ final class TrackersViewController: UIViewController {
     }
     
     private func colorFromHex(_ hex: String) -> UIColor {
-        UIColor(hex: hex) ?? .blue
+        UIColor(hex: hex)
     }
     
     // MARK: - Actions
@@ -263,7 +263,78 @@ final class TrackersViewController: UIViewController {
     @objc private func dateChanged(_ sender: UIDatePicker) {
         selectedDate = sender.date
     }
+    
+    // MARK: - Context Menu Actions
+
+    private func editTracker(_ trackerCD: TrackerCoreData) {
+        let tracker = makeTracker(from: trackerCD)
+        let completedDays = recordStore.completedCount(for: trackerCD)
+        let editVC = NewHabitViewController(
+            trackerToEdit: tracker,
+            completedDays: completedDays
+        )
+        editVC.onTrackerEdited = { [weak self] updated in
+            guard let self else { return }
+
+            do {
+                try self.trackerStore.update(
+                    trackerCD: trackerCD,
+                    name: updated.name,
+                    emoji: updated.emoji,
+                    color: updated.color,
+                    schedule: updated.schedule,
+                    category: updated.category
+                )
+                self.collectionView.reloadData()
+                self.updateVisibleState()
+
+            } catch {
+                print("❌ error updating tracker:", error)
+            }
+        }
+
+        let nav = UINavigationController(rootViewController: editVC)
+        present(nav, animated: true)
+    }
+
+    private func confirmDelete(_ trackerCD: TrackerCoreData) {
+        let alert = UIAlertController(
+            title: nil,
+            message: NSLocalizedString("delete_tracker_message", comment: ""),
+            preferredStyle: .actionSheet
+        )
+
+        let deleteAction = UIAlertAction(
+            title: NSLocalizedString("delete_button", comment: ""),
+            style: .destructive
+        ) { [weak self] _ in
+            self?.deleteTracker(trackerCD)
+        }
+
+        let cancelAction = UIAlertAction(
+            title: NSLocalizedString("cancel_button", comment: ""),
+            style: .cancel
+        )
+
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+
+        present(alert, animated: true)
+    }
+
+    private func deleteTracker(_ trackerCD: TrackerCoreData) {
+        do {
+            try trackerStore.delete(trackerCD)
+            collectionView.reloadData()
+            updateVisibleState()
+        } catch {
+            print("❌ error deleting tracker:", error)
+        }
+    }
 }
+
+
+
 
 // MARK: - UICollectionViewDataSource
 
@@ -400,6 +471,42 @@ extension TrackersViewController: TrackerCellDelegate {
             
         } catch {
             print("❌ error toggling record:", error)
+        }
+    }
+}
+
+// MARK: - Context Menu
+
+extension TrackersViewController: UICollectionViewDelegate {
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfigurationForItemAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
+
+        let trackerCD = sections[indexPath.section].trackers[indexPath.item]
+
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+
+            // Редактировать
+            let edit = UIAction(
+                title: NSLocalizedString("edit_button", comment: ""),
+                image: UIImage(systemName: "pencil")
+            ) { _ in
+                self.editTracker(trackerCD)
+            }
+
+            // Удалить
+            let delete = UIAction(
+                title: NSLocalizedString("delete_button", comment: ""),
+                image: UIImage(systemName: "trash"),
+                attributes: .destructive
+            ) { _ in
+                self.confirmDelete(trackerCD)
+            }
+
+            return UIMenu(children: [edit, delete])
         }
     }
 }
