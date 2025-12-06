@@ -32,6 +32,7 @@ final class ListRowView: UIControl {
         subtitleLabel.isHidden = s.isEmpty
     }
     
+    
     // MARK: - Init
     
     override init(frame: CGRect) {

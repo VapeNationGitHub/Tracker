@@ -56,10 +56,28 @@ final class TrackersViewController: UIViewController {
         }
     }
     
+    private let filterButton: UIButton = {
+        let btn = UIButton(type: .system)
+        btn.setTitle(NSLocalizedString("filters_button", comment: "Фильтры"), for: .normal)
+        btn.backgroundColor = .systemBlue
+        btn.setTitleColor(.white, for: .normal)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        btn.layer.cornerRadius = 16
+        btn.isHidden = true
+        return btn
+    }()
+    
     /// Секция = категория + трекеры
     private struct Section {
         let title: String
         let trackers: [TrackerCoreData]
+    }
+    
+    private var currentFilter: FilterType = .all {
+        didSet {
+            collectionView.reloadData()
+            updateVisibleState()
+        }
     }
     
     // MARK: - Grouped Trackers
@@ -78,18 +96,39 @@ final class TrackersViewController: UIViewController {
             let visibleByDay = schedule.isEmpty || schedule.contains(neededDay)
             
             let matchesSearch = query.isEmpty
-                ? true
-                : (trackerCD.name?.lowercased().contains(query) ?? false)
+            ? true
+            : (trackerCD.name?.lowercased().contains(query) ?? false)
             
             return visibleByDay && matchesSearch
         }
         
+        // Дополнительная фильтрация по выбранному фильтру
+        let filteredByFilter: [TrackerCoreData] = filtered.compactMap { trackerCD in
+            switch currentFilter {
+                
+            case .all:
+                return trackerCD
+                
+            case .today:
+                
+                return trackerCD
+                
+            case .completed:
+                return recordStore.isCompleted(tracker: trackerCD, on: selectedDate)
+                ? trackerCD : nil
+                
+            case .uncompleted:
+                return recordStore.isCompleted(tracker: trackerCD, on: selectedDate)
+                ? nil : trackerCD
+            }
+        }
+        
         // Группировка по категории
-        let grouped = Dictionary(grouping: filtered) { t in
+        let grouped = Dictionary(grouping: filteredByFilter) { t in
             let categoryTitle = t.category?.title
             return categoryTitle?.isEmpty == false
-                ? categoryTitle!
-                : NSLocalizedString("habits_title", comment: "")
+            ? categoryTitle!
+            : NSLocalizedString("habits_title", comment: "")
         }
         
         // Сортировка по алфавиту
@@ -107,6 +146,7 @@ final class TrackersViewController: UIViewController {
         setupCollectionView()
         layoutEmptyView()
         updateVisibleState()
+        setupFilterButton()
         
         NotificationCenter.default.addObserver(
             self,
@@ -149,6 +189,8 @@ final class TrackersViewController: UIViewController {
         layout.minimumInteritemSpacing = 9
         layout.minimumLineSpacing = 16
         layout.sectionInset = UIEdgeInsets(top: 16, left: 9, bottom: 16, right: 9)
+        collectionView.contentInset.bottom = 100
+        collectionView.verticalScrollIndicatorInsets.bottom = 100
         
         collectionView.register(
             CategoryHeaderView.self,
@@ -211,6 +253,22 @@ final class TrackersViewController: UIViewController {
                 emptyView.isHidden = true
             }
         }
+        
+        filterButton.isHidden = sections.isEmpty
+    }
+    
+    private func setupFilterButton() {
+        view.addSubview(filterButton)
+        filterButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        filterButton.addTarget(self, action: #selector(didTapFilterButton), for: .touchUpInside)
+        
+        NSLayoutConstraint.activate([
+            filterButton.widthAnchor.constraint(equalToConstant: 114),
+            filterButton.heightAnchor.constraint(equalToConstant: 50),
+            filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+        ])
     }
     
     // MARK: - Mapping
@@ -264,8 +322,29 @@ final class TrackersViewController: UIViewController {
         selectedDate = sender.date
     }
     
-    // MARK: - Context Menu Actions
+    @objc private func didTapFilterButton() {
+        let vc = FiltersViewController()
+        vc.selectedFilter = currentFilter
 
+        vc.onFilterSelected = { [weak self] (filter: FilterType) in
+            guard let self else { return }
+
+            self.currentFilter = filter
+
+            // Если выбрано "Сегодня" — меняем дату в календаре
+            if filter == .today {
+                let today = Date()
+                self.selectedDate = today
+                self.datePicker.date = today
+            }
+        }
+
+        let nav = UINavigationController(rootViewController: vc)
+        present(nav, animated: true)
+    }
+    
+    // MARK: - Context Menu Actions
+    
     private func editTracker(_ trackerCD: TrackerCoreData) {
         let tracker = makeTracker(from: trackerCD)
         let completedDays = recordStore.completedCount(for: trackerCD)
@@ -275,7 +354,7 @@ final class TrackersViewController: UIViewController {
         )
         editVC.onTrackerEdited = { [weak self] updated in
             guard let self else { return }
-
+            
             do {
                 try self.trackerStore.update(
                     trackerCD: trackerCD,
@@ -287,41 +366,41 @@ final class TrackersViewController: UIViewController {
                 )
                 self.collectionView.reloadData()
                 self.updateVisibleState()
-
+                
             } catch {
                 print("❌ error updating tracker:", error)
             }
         }
-
+        
         let nav = UINavigationController(rootViewController: editVC)
         present(nav, animated: true)
     }
-
+    
     private func confirmDelete(_ trackerCD: TrackerCoreData) {
         let alert = UIAlertController(
             title: nil,
             message: NSLocalizedString("delete_tracker_message", comment: ""),
             preferredStyle: .actionSheet
         )
-
+        
         let deleteAction = UIAlertAction(
             title: NSLocalizedString("delete_button", comment: ""),
             style: .destructive
         ) { [weak self] _ in
             self?.deleteTracker(trackerCD)
         }
-
+        
         let cancelAction = UIAlertAction(
             title: NSLocalizedString("cancel_button", comment: ""),
             style: .cancel
         )
-
+        
         alert.addAction(deleteAction)
         alert.addAction(cancelAction)
-
+        
         present(alert, animated: true)
     }
-
+    
     private func deleteTracker(_ trackerCD: TrackerCoreData) {
         do {
             try trackerStore.delete(trackerCD)
@@ -364,7 +443,7 @@ extension TrackersViewController: UICollectionViewDataSource {
         let completedDays = recordStore.completedCount(for: trackerCD)
         
         let isFuture = Calendar.current.startOfDay(for: selectedDate) >
-                       Calendar.current.startOfDay(for: Date())
+        Calendar.current.startOfDay(for: Date())
         
         cell.configure(
             with: tracker,
@@ -478,17 +557,17 @@ extension TrackersViewController: TrackerCellDelegate {
 // MARK: - Context Menu
 
 extension TrackersViewController: UICollectionViewDelegate {
-
+    
     func collectionView(
         _ collectionView: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
         point: CGPoint
     ) -> UIContextMenuConfiguration? {
-
+        
         let trackerCD = sections[indexPath.section].trackers[indexPath.item]
-
+        
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-
+            
             // Редактировать
             let edit = UIAction(
                 title: NSLocalizedString("edit_button", comment: ""),
@@ -496,7 +575,7 @@ extension TrackersViewController: UICollectionViewDelegate {
             ) { _ in
                 self.editTracker(trackerCD)
             }
-
+            
             // Удалить
             let delete = UIAction(
                 title: NSLocalizedString("delete_button", comment: ""),
@@ -505,7 +584,7 @@ extension TrackersViewController: UICollectionViewDelegate {
             ) { _ in
                 self.confirmDelete(trackerCD)
             }
-
+            
             return UIMenu(children: [edit, delete])
         }
     }
