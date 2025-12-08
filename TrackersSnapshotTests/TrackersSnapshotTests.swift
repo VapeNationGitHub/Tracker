@@ -6,21 +6,38 @@ final class TrackersSnapshotTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-
         isRecording = false
     }
 
-    func testTrackersMainScreen() {
+    func testMainScreenLight() {
         let vc = TrackersViewController()
-
         let nav = UINavigationController(rootViewController: vc)
 
-        // Размер экрана iPhone 16 Pro
-        nav.view.frame = CGRect(x: 0, y: 0, width: 402, height: 874)
+        nav.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
 
-        nav.view.layoutIfNeeded()
+        // Светлая тема
+        let lightTrait = UITraitCollection(userInterfaceStyle: .light)
 
-        // Сам снимок (эталон будет записан в __Snapshots__)
-        assertSnapshot(matching: nav, as: .image)
+        assertSnapshot(
+            matching: nav,
+            as: .image(traits: lightTrait),
+            named: "MainScreen_Light"
+        )
+    }
+
+    func testMainScreenDark() {
+        let vc = TrackersViewController()
+        let nav = UINavigationController(rootViewController: vc)
+
+        nav.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+
+        // Тёмная тема
+        let darkTrait = UITraitCollection(userInterfaceStyle: .dark)
+
+        assertSnapshot(
+            matching: nav,
+            as: .image(traits: darkTrait),
+            named: "MainScreen_Dark"
+        )
     }
 }
