@@ -32,6 +32,15 @@ final class TrackersViewController: UIViewController {
         picker.datePickerMode = .date
         picker.preferredDatePickerStyle = .compact
         picker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
+        
+        // Делаем «пилюлю» как в макете
+        picker.backgroundColor = .white
+        picker.layer.cornerRadius = 8
+        picker.layer.masksToBounds = true
+        
+        // Чтобы текст внутри был тёмный даже в тёмной теме
+        picker.overrideUserInterfaceStyle = .light
+        
         return picker
     }()
     
@@ -141,6 +150,7 @@ final class TrackersViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         setupView()
         setupNavigationBar()
         setupCollectionView()
@@ -325,12 +335,12 @@ final class TrackersViewController: UIViewController {
     @objc private func didTapFilterButton() {
         let vc = FiltersViewController()
         vc.selectedFilter = currentFilter
-
+        
         vc.onFilterSelected = { [weak self] (filter: FilterType) in
             guard let self else { return }
-
+            
             self.currentFilter = filter
-
+            
             // Если выбрано "Сегодня" — меняем дату в календаре
             if filter == .today {
                 let today = Date()
@@ -338,7 +348,7 @@ final class TrackersViewController: UIViewController {
                 self.datePicker.date = today
             }
         }
-
+        
         let nav = UINavigationController(rootViewController: vc)
         present(nav, animated: true)
     }

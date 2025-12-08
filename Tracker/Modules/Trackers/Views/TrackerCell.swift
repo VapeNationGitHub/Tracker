@@ -96,6 +96,10 @@ final class TrackerCell: UICollectionViewCell {
         )
 
         counterLabel.text = pluralString
+        counterLabel.textColor = UIColor { trait in
+            trait.userInterfaceStyle == .dark ? .white : .gray
+        }
+        
         backgroundCardView.backgroundColor = tracker.color
         self.isCompleted = isCompleted
         
