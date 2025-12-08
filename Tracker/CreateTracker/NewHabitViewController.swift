@@ -68,17 +68,17 @@ final class NewHabitViewController: UIViewController {
             selectedColor = tracker.color
             selectedDays = tracker.schedule
             selectedCategory = tracker.category
-
+            
             createButton.setTitle(NSLocalizedString("save_button", comment: "Сохранить"), for: .normal)
-
+            
             categoryRow.setSubtitle(tracker.category.title ?? "")
             updateScheduleSummary()
-
+            
             emojiCollection.preselect(emoji: tracker.emoji)
             colorCollection.preselect(color: tracker.color)
             
             daysCountLabel.isHidden = false
-
+            
             let plural = String.localizedStringWithFormat(
                 NSLocalizedString("days_count", comment: ""),
                 completedDays
@@ -316,7 +316,7 @@ final class NewHabitViewController: UIViewController {
     @objc private func didTapCancel() { dismiss(animated: true) }
     
     @objc private func didTapCreate() {
-
+        
         guard
             let title = titleTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
             !title.isEmpty,
@@ -324,7 +324,7 @@ final class NewHabitViewController: UIViewController {
             let color = selectedColor,
             let category = selectedCategory
         else { return }
-
+        
         let tracker = Tracker(
             id: trackerToEdit?.id ?? UUID(),
             name: title,
@@ -333,13 +333,13 @@ final class NewHabitViewController: UIViewController {
             schedule: selectedDays,
             category: category
         )
-
+        
         if trackerToEdit != nil {
             onTrackerEdited?(tracker)
         } else {
             onTrackerCreated?(tracker)
         }
-
+        
         dismiss(animated: true)
     }
     

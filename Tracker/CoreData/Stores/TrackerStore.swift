@@ -53,7 +53,7 @@ final class TrackerStore: NSObject {
             print("🟥 Invalid or empty schedule in tracker:", tracker.name ?? "Unknown")
             return []
         }
-
+        
         let weekdays: [WeekDay] = rawArray.compactMap { raw in
             if let string = raw as? String, let intValue = Int(string), let day = WeekDay(rawValue: intValue) {
                 return day
@@ -62,7 +62,7 @@ final class TrackerStore: NSObject {
                 return nil
             }
         }
-
+        
         return weekdays
     }
     
@@ -71,19 +71,19 @@ final class TrackerStore: NSObject {
     }
     
     // MARK: - Create
-
+    
     func create(id: UUID,
                 name: String,
                 emoji: String,
                 color: UIColor,
                 schedule: [WeekDay],
                 category: TrackerCategoryCoreData?) throws {
-
+        
         guard !schedule.isEmpty else {
             print("🟥 Ошибка: пустое расписание — не сохраняем трекер")
             return
         }
-
+        
         let tracker = TrackerCoreData(context: context)
         tracker.id = id
         tracker.name = name
@@ -92,14 +92,14 @@ final class TrackerStore: NSObject {
         
         let scheduleStrings = schedule.map { String($0.rawValue) }
         tracker.schedule = scheduleStrings as NSArray
-
+        
         tracker.category = category
-
+        
         try context.save()
     }
     
     // MARK: - Update
-
+    
     func update(
         trackerCD: TrackerCoreData,
         name: String,
@@ -108,16 +108,16 @@ final class TrackerStore: NSObject {
         schedule: [WeekDay],
         category: TrackerCategoryCoreData?
     ) throws {
-
+        
         trackerCD.name = name
         trackerCD.emoji = emoji
         trackerCD.colorHex = color.toHexString()
-
+        
         let scheduleStrings = schedule.map { String($0.rawValue) }
         trackerCD.schedule = scheduleStrings as NSArray
-
+        
         trackerCD.category = category
-
+        
         try context.save()
     }
     
