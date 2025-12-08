@@ -32,13 +32,9 @@ final class TrackersViewController: UIViewController {
         picker.datePickerMode = .date
         picker.preferredDatePickerStyle = .compact
         picker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
-        
-        // Делаем «пилюлю» как в макете
         picker.backgroundColor = .white
         picker.layer.cornerRadius = 8
         picker.layer.masksToBounds = true
-        
-        // Чтобы текст внутри был тёмный даже в тёмной теме
         picker.overrideUserInterfaceStyle = .light
         
         return picker
