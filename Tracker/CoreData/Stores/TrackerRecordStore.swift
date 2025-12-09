@@ -81,6 +81,18 @@ final class TrackerRecordStore: NSObject {
         return (try? context.count(for: request)) ?? 0
     }
     
+    func totalCompleted() -> Int {
+        let request = TrackerRecordCoreData.fetchRequest()
+
+        do {
+            let records = try context.fetch(request)
+            return records.filter { $0.tracker != nil }.count
+        } catch {
+            print("❌ Error fetching records:", error)
+            return 0
+        }
+    }
+    
     // MARK: - Create / Delete
     
     func add(tracker: TrackerCoreData, date: Date) throws {

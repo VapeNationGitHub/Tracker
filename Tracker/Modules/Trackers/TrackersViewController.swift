@@ -569,6 +569,7 @@ extension TrackersViewController: TrackerCellDelegate {
             
             collectionView.reloadData()
             updateVisibleState()
+            NotificationCenter.default.post(name: .statisticsShouldUpdate, object: nil)
             
         } catch {
             print("❌ error toggling record:", error)

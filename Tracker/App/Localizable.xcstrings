@@ -291,6 +291,17 @@
         }
       }
     },
+    "empty_statistics" : {
+      "comment" : "Анализировать пока нечего",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Анализировать пока нечего"
+          }
+        }
+      }
+    },
     "empty_trackers_placeholder" : {
       "localizations" : {
         "en" : {
@@ -693,6 +704,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Статистика"
+          }
+        }
+      }
+    },
+    "stats_completed" : {
+      "comment" : "Трекеров завершено",
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Трекеров завершено"
           }
         }
       }
