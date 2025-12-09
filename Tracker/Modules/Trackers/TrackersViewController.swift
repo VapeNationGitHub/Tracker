@@ -162,6 +162,18 @@ final class TrackersViewController: UIViewController {
         )
     }
     
+    // MARK: - Analytics (lifecycle)
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AnalyticsService.shared.report(event: "open", screen: "Main")
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        AnalyticsService.shared.report(event: "close", screen: "Main")
+    }
+    
     // MARK: - Core Data Update
     
     @objc private func onStoreUpdate() {
@@ -297,6 +309,7 @@ final class TrackersViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func didTapAdd() {
+        AnalyticsService.shared.report(event: "click", screen: "Main", item: "add_track")
         let habitVC = NewHabitViewController()
         
         habitVC.onTrackerCreated = { [weak self] tracker in
@@ -329,6 +342,7 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc private func didTapFilterButton() {
+        AnalyticsService.shared.report(event: "click", screen: "Main", item: "filter")
         let vc = FiltersViewController()
         vc.selectedFilter = currentFilter
         
@@ -544,6 +558,8 @@ extension TrackersViewController: TrackerCellDelegate {
         
         let trackerCD = sections[index.section].trackers[index.item]
         
+        AnalyticsService.shared.report(event: "click", screen: "Main", item: "track")
+        
         do {
             if recordStore.isCompleted(tracker: trackerCD, on: selectedDate) {
                 try recordStore.remove(tracker: trackerCD, date: selectedDate)
@@ -579,6 +595,7 @@ extension TrackersViewController: UICollectionViewDelegate {
                 title: NSLocalizedString("edit_button", comment: ""),
                 image: UIImage(systemName: "pencil")
             ) { _ in
+                AnalyticsService.shared.report(event: "click", screen: "Main", item: "edit")
                 self.editTracker(trackerCD)
             }
             
@@ -588,6 +605,7 @@ extension TrackersViewController: UICollectionViewDelegate {
                 image: UIImage(systemName: "trash"),
                 attributes: .destructive
             ) { _ in
+                AnalyticsService.shared.report(event: "click", screen: "Main", item: "delete")
                 self.confirmDelete(trackerCD)
             }
             

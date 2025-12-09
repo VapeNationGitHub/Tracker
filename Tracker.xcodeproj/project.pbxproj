@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0296C5D12EE750A900ECD530 /* YandexMobileMetrica in Frameworks */ = {isa = PBXBuildFile; productRef = 0296C5D02EE750A900ECD530 /* YandexMobileMetrica */; };
 		02A2D5412ECA1A6D00EAD052 /* UIColorHexSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 02A2D5402ECA1A6D00EAD052 /* UIColorHexSwift */; };
 		02EF54842EE72FD600D3B938 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 02EF54832EE72FD600D3B938 /* SnapshotTesting */; };
 		02EF54862EE72FDC00D3B938 /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 02EF54852EE72FDC00D3B938 /* InlineSnapshotTesting */; };
@@ -60,6 +61,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				02A2D5412ECA1A6D00EAD052 /* UIColorHexSwift in Frameworks */,
+				0296C5D12EE750A900ECD530 /* YandexMobileMetrica in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,6 +125,7 @@
 			name = Tracker;
 			packageProductDependencies = (
 				02A2D5402ECA1A6D00EAD052 /* UIColorHexSwift */,
+				0296C5D02EE750A900ECD530 /* YandexMobileMetrica */,
 			);
 			productName = Tracker;
 			productReference = 027496082E56078E00AA2A39 /* Tracker.app */;
@@ -186,6 +189,7 @@
 			packageReferences = (
 				02A2D53F2ECA1A6D00EAD052 /* XCRemoteSwiftPackageReference "UIColor-Hex-Swift" */,
 				0230E1922EE4955200403350 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+				0296C5CF2EE750A900ECD530 /* XCRemoteSwiftPackageReference "metrica-sdk-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 027496092E56078E00AA2A39 /* Products */;
@@ -498,6 +502,14 @@
 				minimumVersion = 1.18.7;
 			};
 		};
+		0296C5CF2EE750A900ECD530 /* XCRemoteSwiftPackageReference "metrica-sdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/yandexmobile/metrica-sdk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
 		02A2D53F2ECA1A6D00EAD052 /* XCRemoteSwiftPackageReference "UIColor-Hex-Swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/yeahdongcn/UIColor-Hex-Swift";
@@ -509,6 +521,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0296C5D02EE750A900ECD530 /* YandexMobileMetrica */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0296C5CF2EE750A900ECD530 /* XCRemoteSwiftPackageReference "metrica-sdk-ios" */;
+			productName = YandexMobileMetrica;
+		};
 		02A2D5402ECA1A6D00EAD052 /* UIColorHexSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 02A2D53F2ECA1A6D00EAD052 /* XCRemoteSwiftPackageReference "UIColor-Hex-Swift" */;
