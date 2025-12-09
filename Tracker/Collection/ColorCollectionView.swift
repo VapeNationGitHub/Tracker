@@ -17,6 +17,11 @@ final class ColorCollectionView: UICollectionView,
     
     private var selectedColor: UIColor?
     
+    func preselect(color: UIColor) {
+        selectedColor = color
+        reloadData()
+    }
+    
     // MARK: - Callback
     
     var onColorSelected: ((UIColor) -> Void)?

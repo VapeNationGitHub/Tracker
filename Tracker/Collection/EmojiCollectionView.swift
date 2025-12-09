@@ -16,6 +16,11 @@ final class EmojiCollectionView: UICollectionView,
     
     private var selectedEmoji: String?
     
+    func preselect(emoji: String) {
+        selectedEmoji = emoji
+        reloadData()
+    }
+    
     // MARK: - Callback
     
     var onEmojiSelected: ((String) -> Void)?

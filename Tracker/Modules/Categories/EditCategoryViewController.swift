@@ -30,7 +30,7 @@ final class EditCategoryViewController: UIViewController {
         tf.font = .systemFont(ofSize: 17)
         tf.textColor = UIColor(resource: .blackDay)
         tf.attributedPlaceholder = NSAttributedString(
-            string: "Введите название категории",
+            string: NSLocalizedString("category_placeholder", comment: ""),
             attributes: [.foregroundColor: UIColor.placeholderText]
         )
         tf.backgroundColor = .clear
@@ -44,7 +44,7 @@ final class EditCategoryViewController: UIViewController {
     /// Кнопка "Готово"
     private let doneButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        button.setTitle(NSLocalizedString("done_button", comment: ""), for: .normal)
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -66,7 +66,7 @@ final class EditCategoryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Редактирование категории"
+        title = NSLocalizedString("edit_category_title", comment: "")
         view.backgroundColor = .systemBackground
         
         setupUI()
@@ -149,7 +149,7 @@ final class EditCategoryViewController: UIViewController {
         toolbar.sizeToFit()
         
         let flex = UIBarButtonItem(systemItem: .flexibleSpace)
-        let done = UIBarButtonItem(title: "Готово", style: .done, target: self, action: #selector(dismissKeyboard))
+        let done = UIBarButtonItem(title: NSLocalizedString("done_button", comment: ""), style: .done, target: self, action: #selector(dismissKeyboard))
         
         toolbar.setItems([flex, done], animated: false)
         textField.inputAccessoryView = toolbar

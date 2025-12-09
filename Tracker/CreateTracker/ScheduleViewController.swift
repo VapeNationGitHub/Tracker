@@ -19,16 +19,23 @@ final class ScheduleViewController: UIViewController {
     
     private var selectedWeekdays: Set<Int> = []
     
-    private let weekdays = [
-        "Понедельник", "Вторник", "Среда", "Четверг",
-        "Пятница", "Суббота", "Воскресенье"
-    ]
+    private var weekdays: [String] {
+        return [
+            NSLocalizedString("monday", comment: ""),
+            NSLocalizedString("tuesday", comment: ""),
+            NSLocalizedString("wednesday", comment: ""),
+            NSLocalizedString("thursday", comment: ""),
+            NSLocalizedString("friday", comment: ""),
+            NSLocalizedString("saturday", comment: ""),
+            NSLocalizedString("sunday", comment: "")
+        ]
+    }
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Расписание"
+        title = NSLocalizedString("schedule_title", comment: "")
         view.backgroundColor = .systemBackground
         setupUI()
         layoutUI()
@@ -70,7 +77,7 @@ final class ScheduleViewController: UIViewController {
         }
         
         // Кнопка "Готово"
-        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitle(NSLocalizedString("done_button", comment: ""), for: .normal)
         doneButton.setTitleColor(.white, for: .normal)
         doneButton.backgroundColor = .black
         doneButton.layer.cornerRadius = 16

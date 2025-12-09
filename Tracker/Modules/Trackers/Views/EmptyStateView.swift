@@ -23,6 +23,25 @@ final class EmptyStateView: UIView {
     // MARK: - Public API
     func configure(image: UIImage?, title: String) {
         imageView.image = image
+
+        if title == NSLocalizedString("empty_statistics", comment: "") {
+            let style = NSMutableParagraphStyle()
+            style.minimumLineHeight = 18
+            style.maximumLineHeight = 18
+            style.alignment = .center
+
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 12, weight: .medium),
+                .paragraphStyle: style,
+                .kern: 0
+            ]
+
+            titleLabel.attributedText = NSAttributedString(string: title, attributes: attributes)
+            return
+        }
+
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textAlignment = .center
         titleLabel.text = title
     }
     

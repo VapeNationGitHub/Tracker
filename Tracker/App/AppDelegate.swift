@@ -1,9 +1,8 @@
 import UIKit
+import YandexMobileMetrica
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    
-    // MARK: - UIApplicationDelegate
     
     func application(
         _ application: UIApplication,
@@ -15,6 +14,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             WeekDaysTransformer(),
             forName: NSValueTransformerName("WeekDaysTransformer")
         )
+        
+        // MARK: - AppMetrica Init
+        let configuration = YMMYandexMetricaConfiguration(apiKey: "a76f9986-a218-4c40-97af-06ec21d724e4")
+        YMMYandexMetrica.activate(with: configuration!)
+        
+        print("📊 AppMetrica activated")
         
         return true
     }
@@ -34,9 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(
         _ application: UIApplication,
         didDiscardSceneSessions sceneSessions: Set<UISceneSession>
-    ) {
-
-    }
+    ) { }
     
     func applicationDidEnterBackground(_ application: UIApplication) {
         CoreDataStack.shared.saveContext()
